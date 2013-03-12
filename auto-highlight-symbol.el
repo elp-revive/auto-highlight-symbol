@@ -6,7 +6,7 @@
 ;; Author: Mitsuo Saito <arch320@NOSPAM.gmail.com>
 ;; Version: 1.54 beta
 ;; Keywords: highlight face match convenience
-;; URL: http://github.com/mitsuo-saito/auto-highlight-symbol-mode/raw/master/auto-highlight-symbol.el
+;; URL: http://github.com/gennad/auto-highlight-symbol/raw/master/auto-highlight-symbol.el
 ;; Compatibility: GNU Emacs 22.3 23.x 24.x later
 ;;
 ;; This file is NOT part of GNU Emacs.
