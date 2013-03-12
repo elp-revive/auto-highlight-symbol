@@ -4,7 +4,8 @@
 ;; Created date 2009-03-03 21:44 +0900
 
 ;; Author: Mitsuo Saito <arch320@NOSPAM.gmail.com>
-;; Version: 1.54 beta
+;; Maintainer: Gennadiy Zlobin <gennad.zlobin@NOSPAM.gmail.com>
+;; Version: 1.55
 ;; Keywords: highlight face match convenience
 ;; URL: http://github.com/gennad/auto-highlight-symbol/raw/master/auto-highlight-symbol.el
 ;; Compatibility: GNU Emacs 22.3 23.x 24.x later
@@ -71,7 +72,7 @@
 ;;   * can specify the range to highlight.
 ;;   * can edit the highlighted symbols at a time.
 ;;
-;;  Tested on GNU Emacs 22.3/23.2/24.0.50
+;;  Tested on GNU Emacs 22.3/23.2/24.0.50/24.2
 ;;
 
 ;;; (@* "Setup" )
