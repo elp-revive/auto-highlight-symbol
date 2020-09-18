@@ -5,9 +5,10 @@
 
 ;; Author: Mitsuo Saito <arch320@NOSPAM.gmail.com>
 ;; Adapted-By: Gennadiy Zlobin <gennad.zlobin@NOSPAM.gmail.com>
-;; Version: 1.55
+;;             Shen, Jen-Chieh <jcs090218@gmail.com>
+;; Version: 1.56
 ;; Keywords: highlight face match convenience
-;; URL: http://github.com/gennad/auto-highlight-symbol/raw/master/auto-highlight-symbol.el
+;; URL: http://github.com/jcs-elpa/auto-highlight-symbol
 ;; Compatibility: GNU Emacs 22.3 23.x 24.x later
 ;;
 ;; This file is NOT part of GNU Emacs.
@@ -65,7 +66,7 @@
 
 ;;; (@* "What's this" )
 ;;
-;;  A minor mode for emacs.
+;;  A minor mode for Emacs.
 ;;
 ;;   * automatic highlighting current symbol like eclipse IDE.
 ;;   * cycle through highlighted locations.
@@ -183,6 +184,16 @@
 
 ;;; (@* "Changelog" )
 ;;
+;; v1.57
+;;   Fix deprecated `cl' library with `cl-lib' instead
+;;   Remove annoying underline property from `ahs-definition-face'
+;;
+;; v1.56
+;;   Adapted by Shen, Jen-Chieh <jcs090218@gmail.com>
+;;
+;; v1.55
+;;   Adapted by Gennadiy Zlobin <gennad.zlobin@NOSPAM.gmail.com>
+;;
 ;; v1.54 beta
 ;;   Bug fix release
 ;;   ** fix overlay violation problem in edit mode(backward) - !incomplete!
@@ -240,7 +251,7 @@
 (eval-when-compile
   ;; Suppress bytecompiler error warning
   (require 'easy-mmode)
-  (require 'cl)
+  (require 'cl-lib)
   (defvar dropdown-list-overlays nil))
 
 (eval-and-compile
@@ -255,7 +266,7 @@
 
 (defconst ahs-mode-vers
   "$Id: auto-highlight-symbol.el,v 243:6aa59061b1df 2010-11-21 14:42 +0900 arch320 $"
-  "auto-highlight-symbol-mode version.")
+  "The function `auto-highlight-symbol-mode' version.")
 
 ;;
 ;; (@* "Custom variable" )
@@ -305,7 +316,7 @@
      text-mode
      tcl-mode
      visual-basic-mode )
-  "Major modes `auto-highlight-symbol-mode' can run on."
+  "Major modes function `auto-highlight-symbol-mode' can run on."
   :group 'auto-highlight-symbol
   :type '(repeat symbol))
 
@@ -394,7 +405,7 @@ Affects only overlay(hidden text) has a property `isearch-open-invisible'."
 (defvar ahs-face 'ahs-face)
 
 (defface ahs-definition-face
-  '((t (:foreground "moccasin" :background "CadetBlue" :underline t)))
+  '((t (:foreground "moccasin" :background "CadetBlue")))
   "Highlight the symbol definition using this face."
   :group 'auto-highlight-symbol)
 (defvar ahs-definition-face 'ahs-definition-face)
