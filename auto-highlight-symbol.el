@@ -251,7 +251,7 @@
 (eval-when-compile
   ;; Suppress bytecompiler error warning
   (require 'easy-mmode)
-  (require 'cl-lib)
+  (require 'cl)
   (defvar dropdown-list-overlays nil))
 
 (eval-and-compile
