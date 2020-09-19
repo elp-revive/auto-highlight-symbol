@@ -273,6 +273,7 @@
 
 (defgroup auto-highlight-symbol nil
   "Automatic highlighting current symbol minor mode"
+  :prefix "ahs-"
   :group 'convenience
   :link `(url-link :tag "Download latest version"
                    ,(eval-when-compile (concat ahs-web "raw/master/auto-highlight-symbol.el")))
