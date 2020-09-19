@@ -185,7 +185,6 @@
 ;;; (@* "Changelog" )
 ;;
 ;; v1.57
-;;   Fix deprecated `cl' library with `cl-lib' instead
 ;;   Remove annoying underline property from `ahs-definition-face'
 ;;
 ;; v1.56
