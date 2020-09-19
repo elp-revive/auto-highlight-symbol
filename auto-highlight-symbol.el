@@ -185,7 +185,8 @@
 ;;; (@* "Changelog" )
 ;;
 ;; v1.57
-;;   Remove annoying underline property from `ahs-definition-face'
+;;   remove annoying `underline' property from `ahs-definition-face'
+;;   minor docstring changes
 ;;
 ;; v1.56
 ;;   Adapted by Shen, Jen-Chieh <jcs090218@gmail.com>
