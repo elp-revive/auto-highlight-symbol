@@ -6,7 +6,7 @@
 ;; Author: Mitsuo Saito <arch320@NOSPAM.gmail.com>
 ;; Adapted-By: Gennadiy Zlobin <gennad.zlobin@NOSPAM.gmail.com>
 ;;             Shen, Jen-Chieh <jcs090218@gmail.com>
-;; Version: 1.56
+;; Version: 1.57
 ;; Keywords: highlight face match convenience
 ;; URL: http://github.com/jcs-elpa/auto-highlight-symbol
 ;; Compatibility: GNU Emacs 22.3 23.x 24.x later
