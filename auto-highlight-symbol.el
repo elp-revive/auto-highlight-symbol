@@ -184,6 +184,9 @@
 
 ;;; (@* "Changelog" )
 ;;
+;; v1.58
+;;   fix sharp quotes for function names
+;;
 ;; v1.57
 ;;   remove annoying `underline' property from `ahs-definition-face'
 ;;   minor docstring changes
