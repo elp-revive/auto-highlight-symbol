@@ -186,6 +186,7 @@
 ;;
 ;; v1.58
 ;;   fix sharp quotes for function names
+;;   fix `cl' deprecated issue
 ;;
 ;; v1.57
 ;;   remove annoying `underline' property from `ahs-definition-face'
