@@ -254,7 +254,7 @@
 (eval-when-compile
   ;; Suppress bytecompiler error warning
   (require 'easy-mmode)
-  (require 'cl)
+  (require 'cl-lib)
   (defvar dropdown-list-overlays nil))
 
 (eval-and-compile
@@ -782,27 +782,27 @@ You can do these operations at One Key!
 
 (defun ahs-runnable-plugins (&optional getnext)
   "Return list of runnable plugins."
-  (loop with current   = nil
-        with available = nil
+  (cl-loop with current   = nil
+           with available = nil
 
-        for range  in ahs-range-plugin-list
-        for plugin = (symbol-value range)
-        for mode   = (ahs-get-plugin-prop 'major-mode range)
+           for range  in ahs-range-plugin-list
+           for plugin = (symbol-value range)
+           for mode   = (ahs-get-plugin-prop 'major-mode range)
 
-        when (equal plugin ahs-current-range) do (setq current range)
+           when (equal plugin ahs-current-range) do (setq current range)
 
-        when (or (equal 'none mode)
-                 (and (listp mode)
-                      (memq major-mode mode))
-                 (eq major-mode mode))
-        when (ahs-get-plugin-prop 'condition range)
-        collect range into available
+           when (or (equal 'none mode)
+                    (and (listp mode)
+                         (memq major-mode mode))
+                    (eq major-mode mode))
+           when (ahs-get-plugin-prop 'condition range)
+           collect range into available
 
-        finally
-        return (if getnext
-                   (or (cadr (memq current available))
-                       (car available))
-                 available)))
+           finally
+           return (if getnext
+                      (or (cadr (memq current available))
+                          (car available))
+                    available)))
 
 (defun ahs-change-range-internal (range)
   "Current plugin change to `RANGE' plugin."
@@ -996,18 +996,18 @@ You can do these operations at One Key!
   "Return Non-nil if `FACE' in `FACES'."
   (let ((facelist (symbol-value faces)))
     (if (listp face)
-        (loop for x in face
-              when (memq x facelist)
-              return x)
+        (cl-loop for x in face
+                 when (memq x facelist)
+                 return x)
       (memq face facelist))))
 
 (defun ahs-get-overlay-face (pos)
   "Return list of all overlays face at `POS'."
-  (loop for overlay in (overlays-at pos)
-        for face = (overlay-get overlay 'face)
-        when face
-        when (symbolp face)
-        collect face))
+  (cl-loop for overlay in (overlays-at pos)
+           for face = (overlay-get overlay 'face)
+           when face
+           when (symbolp face)
+           collect face))
 
 ;;
 ;; (@* "Highlight" )
@@ -1070,44 +1070,44 @@ You can do these operations at One Key!
   ;; If you feel slow, please use `display area' plugin instead of `whole buffer' plugin.
   ;; And use `ahs-onekey-edit' to use `whole buffer' plugin.
   ;;
-  (loop with beg = nil
-        with end = nil
+  (cl-loop with beg = nil
+           with end = nil
 
-        for symbol in ahs-search-work
-        for fontified = (or (nth 2 symbol)
-                            (nth 3 symbol))
+           for symbol in ahs-search-work
+           for fontified = (or (nth 2 symbol)
+                               (nth 3 symbol))
 
-        unless (or beg fontified) do (setq beg (nth 0 symbol))
-        unless fontified          do (setq end (nth 1 symbol))
+           unless (or beg fontified) do (setq beg (nth 0 symbol))
+           unless fontified          do (setq end (nth 1 symbol))
 
-        when (and beg end fontified)
-        do (progn
-             (jit-lock-fontify-now beg end)
-             (setq beg nil
-                   end nil))
+           when (and beg end fontified)
+           do (progn
+                (jit-lock-fontify-now beg end)
+                (setq beg nil
+                      end nil))
 
-        finally
-        do (when (and beg end)
-             (jit-lock-fontify-now beg end))))
+           finally
+           do (when (and beg end)
+                (jit-lock-fontify-now beg end))))
 
 (defun ahs-light-up ()
   "Light up symbols."
-  (loop for symbol in ahs-search-work
+  (cl-loop for symbol in ahs-search-work
 
-        for beg  = (nth 0 symbol)
-        for end  = (nth 1 symbol)
-        for face = (or (nth 2 symbol)
-                       (get-text-property beg 'face))
-        for face = (ahs-add-overlay-face beg face)
+           for beg  = (nth 0 symbol)
+           for end  = (nth 1 symbol)
+           for face = (or (nth 2 symbol)
+                          (get-text-property beg 'face))
+           for face = (ahs-add-overlay-face beg face)
 
-        unless (ahs-face-p face 'ahs-inhibit-face-list)
-        do (let ((overlay (make-overlay beg end nil nil t)))
-             (overlay-put overlay 'ahs-symbol t)
-             (overlay-put overlay 'face
-                          (if (ahs-face-p face 'ahs-definition-face-list)
-                              ahs-definition-face
-                            ahs-face))
-             (push overlay ahs-overlay-list))))
+           unless (ahs-face-p face 'ahs-inhibit-face-list)
+           do (let ((overlay (make-overlay beg end nil nil t)))
+                (overlay-put overlay 'ahs-symbol t)
+                (overlay-put overlay 'face
+                             (if (ahs-face-p face 'ahs-definition-face-list)
+                                 ahs-definition-face
+                               ahs-face))
+                (push overlay ahs-overlay-list))))
 
 (defun ahs-highlight (symbol beg end)
   "Highlight"
@@ -1316,30 +1316,30 @@ You can do these operations at One Key!
 (defun ahs-select (pred &optional reverse onlydef)
   "Select highlighted symbol."
   (when ahs-highlighted
-    (let* ((next (loop with start = nil
-                       for overlay in (if reverse
-                                          (reverse ahs-overlay-list)
-                                        ahs-overlay-list)
+    (let* ((next (cl-loop with start = nil
+                          for overlay in (if reverse
+                                             (reverse ahs-overlay-list)
+                                           ahs-overlay-list)
 
-                       for skip = (loop for hidden in (overlays-at (overlay-start overlay))
-                                        when (overlay-get hidden 'invisible)
-                                        when (or (equal ahs-select-invisible 'skip)
-                                                 (not (overlay-get hidden 'isearch-open-invisible)))
-                                        return hidden)
+                          for skip = (cl-loop for hidden in (overlays-at (overlay-start overlay))
+                                              when (overlay-get hidden 'invisible)
+                                              when (or (equal ahs-select-invisible 'skip)
+                                                       (not (overlay-get hidden 'isearch-open-invisible)))
+                                              return hidden)
 
-                       for selectable = (and (not skip)
-                                             (or (not onlydef)
-                                                 (ahs-definition-p overlay)))
+                          for selectable = (and (not skip)
+                                                (or (not onlydef)
+                                                    (ahs-definition-p overlay)))
 
-                       when selectable
-                       unless start do (setq start overlay)
+                          when selectable
+                          unless start do (setq start overlay)
 
-                       when selectable
-                       when (funcall pred overlay) return overlay
+                          when selectable
+                          when (funcall pred overlay) return overlay
 
-                       finally
-                       return (or start
-                                  ahs-current-overlay)))
+                          finally
+                          return (or start
+                                     ahs-current-overlay)))
 
            (beg (overlay-start next))
            (end (overlay-end next)))
@@ -1357,10 +1357,10 @@ You can do these operations at One Key!
 
 (defun ahs-get-openable-overlays (overlay)
   "Return list of openable overlays."
-  (loop for openable in (overlays-at (overlay-start overlay))
-        when (overlay-get openable 'invisible)
-        when (overlay-get openable 'isearch-open-invisible)
-        collect openable))
+  (cl-loop for openable in (overlays-at (overlay-start overlay))
+           when (overlay-get openable 'invisible)
+           when (overlay-get openable 'isearch-open-invisible)
+           collect openable))
 
 ;; Modified from isearch.el
 (defun ahs-close-unnecessary-overlays ()
@@ -1415,9 +1415,9 @@ You can do these operations at One Key!
 (defun ahs-start-point-p    (x) (equal (overlay-start x) ahs-start-point))
 (defun ahs-inside-overlay-p (x) (and (>= (point) (overlay-start x)) (<= (point) (overlay-end x))))
 (defun ahs-inside-display-p (x) (and (>= (window-end) (overlay-start x)) (<= (window-start) (overlay-start x))))
-(defun ahs-hidden-p         (x) (loop for overlay in (overlays-at (overlay-start x))
-                                      when (overlay-get overlay 'invisible)
-                                      return t))
+(defun ahs-hidden-p         (x) (cl-loop for overlay in (overlays-at (overlay-start x))
+                                         when (overlay-get overlay 'invisible)
+                                         return t))
 
 ;;
 ;; (@* "Misc" )
@@ -1428,23 +1428,23 @@ You can do these operations at One Key!
   (append (list (ahs-decorated-current-plugin-name)
                 (length ahs-overlay-list))
 
-          (loop with hidden?   = 0
-                with before    = 0
-                with after     = 0
-                with displayed = 0
+          (cl-loop with hidden?   = 0
+                   with before    = 0
+                   with after     = 0
+                   with displayed = 0
 
-                for x in ahs-overlay-list
+                   for x in ahs-overlay-list
 
-                count (funcall #'ahs-backward-p x) into before
-                count (funcall #'ahs-forward-p x)  into after
+                   count (funcall #'ahs-backward-p x) into before
+                   count (funcall #'ahs-forward-p x)  into after
 
-                count (and (funcall #'ahs-inside-display-p x)
-                           (incf hidden?)
-                           (not (funcall #'ahs-hidden-p x)))
-                into displayed
+                   count (and (funcall #'ahs-inside-display-p x)
+                              (cl-incf hidden?)
+                              (not (funcall #'ahs-hidden-p x)))
+                   into displayed
 
-                finally
-                return (list before after displayed (- hidden? displayed)))))
+                   finally
+                   return (list before after displayed (- hidden? displayed)))))
 
 (defun ahs-stat-alert-p (status)
   "Return Non-nil if many symbols are highlighted but displayed one or zero."
