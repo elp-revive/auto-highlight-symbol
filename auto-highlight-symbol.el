@@ -185,6 +185,9 @@
 
 ;;; (@* "Changelog" )
 ;;
+;; v1.59
+;;   fix copyright information
+;;
 ;; v1.58
 ;;   fix sharp quotes for function names
 ;;   fix `cl' deprecated issue
