@@ -9,10 +9,10 @@
 ## Author
 
 * **Original Author:** 
-  - Mitsuo Saito `<arch320@NOSPAM.gmail.com>`
+  - Mitsuo Saito <<arch320@NOSPAM.gmail.com>>
 * **Adapted By:** 
-  - Gennadiy Zlobin `<gennad.zlobin@NOSPAM.gmail.com>`
-  - Shen, Jen-Chieh `<jcs090218@gmail.com>`
+  - Gennadiy Zlobin <<gennad.zlobin@NOSPAM.gmail.com>>
+  - Shen, Jen-Chieh <<jcs090218@gmail.com>>
 
 ## Contribution
 
