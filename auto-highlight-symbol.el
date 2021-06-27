@@ -367,8 +367,9 @@
   "Behavior when selected symbol in hidden text.
 
 When the value is
-  `immediate' Open hidden text. When leaving opened text, close it immediately.
-  `temporary' Open hidden text. When unhighlight or change plugin, close the opened texts except selected.
+  `immediate' Open hidden text.  When leaving opened text, close it immediately.
+  `temporary' Open hidden text.  When unhighlight or change plugin, close the
+              opened texts except selected.
   `open'      Open hidden text permanently.
   `skip'      Select next visible symbol.
 
@@ -380,7 +381,7 @@ Affects only overlay(hidden text) has a property `isearch-open-invisible'."
                  (const :tag "Skip over all symbols in hidden text" skip)))
 
 (defcustom auto-highlight-symbol-mode-hook nil
-  "Hook for `auto-highlight-symbol-mode'."
+  "Hook for function `auto-highlight-symbol-mode'."
   :group 'auto-highlight-symbol
   :type 'hook)
 
@@ -395,7 +396,7 @@ Affects only overlay(hidden text) has a property `isearch-open-invisible'."
   :type 'hook)
 
 (defvar ahs-idle-timer nil
-  "Timer used to highlighting symbol whenever emacs is idle.")
+  "Timer used to highlighting symbol whenever Emacs is idle.")
 
 (defcustom ahs-idle-interval 1.0
   "Number of seconds to wait before highlighting symbol."
@@ -480,7 +481,7 @@ This variable can be set in three different types.
 
   3. `alist'
       '(
-        ( emacs-lisp-mode . \"REGEXP\")          ;; Regular expression in emacs-lisp-mode
+        ( `emacs-lisp-mode' . \"REGEXP\")          ;; Regular expression in emacs-lisp-mode
         ( php-mode        . my-include-function) ;; Function predicate in php-mode
         )
     If major mode not in list `ahs-default-symbol-regexp' will be used instead."
@@ -503,7 +504,7 @@ This variable can be set in three different types.
 
   3. `alist'
       '(
-        ( ruby-mode . \"\\_<\\(end\\|def\\|class\\)\\_>\") ;; Regular expression in ruby-mode
+        ( `ruby-mode' . \"\\_<\\(end\\|def\\|class\\)\\_>\") ;; Regular expression in ruby-mode
         ( dos-mode  . i-hate-wxxxxxs)                      ;; Function predicate in dos-mode
         )
       If major mode not in list all symbols can be highlighted."
@@ -552,13 +553,13 @@ This variable can be set in three different types.
     (define-key map (kbd "C-x C-'") 'ahs-change-range)
     (define-key map (kbd "C-x C-a") 'ahs-edit-mode)
     map)
-  "Keymap used in `auto-highlight-symbol-mode'.")
+  "Keymap used in function `auto-highlight-symbol-mode'.")
 
 
 (defmacro ahs-onekey-edit (keys plugin-name &optional keep keymap)
   "Macro of One Key Edit.
 
-ahs-change-range   -> ahs-edit-mode -> editing... ->
+`ahs-change-range'   -> `ahs-edit-mode' -> editing... ->
 ahs-edit-mode(off) -> ahs-change-range... sigh...
 
 You can do these operations at One Key!
@@ -566,7 +567,7 @@ You can do these operations at One Key!
    `KEYS'        Keyboard macro
    `PLUGIN-NAME' Plugin name
    `KEEP'        Keep plugin after exiting edit mode.
-   `KEYMAP'      Keymap If value is `nil' or not keymap
+   `KEYMAP'      Keymap If value is nil or not keymap
                         `auto-highlight-symbol-mode-map' will be used instead.
 
   ex.(ahs-onekey-edit \"C-x C-y\" beginning-of-defun)"
@@ -583,7 +584,7 @@ You can do these operations at One Key!
 
     `KEYS'        Keyboard macro
     `PLUGIN-NAME' Plugin name
-    `KEYMAP'      Keymap If value is `nil' or not keymap
+    `KEYMAP'      Keymap If value is nil or not keymap
                          `auto-highlight-symbol-mode-map' will be used instead.
 
   ex.(ahs-onekey-change \"C-x C-y\" display)"
@@ -684,18 +685,20 @@ You can do these operations at One Key!
     ( stat               . "Current plugin `%s' matched %s  displayed %s  hidden %s  before %s  after %s.")
     ( self               . "%s")
     )
-  "Log data")
+  "Log data.")
 
 (defmacro ahs-decorate-if (body face)
+  "Not documented, BODY and FACE."
   `(if ahs-decorate-log
        (propertize ,body 'face ,face)
      ,body))
 
 (defmacro ahs-log-format (key)
+  "Not documented, KEY."
   `(cdr (assoc ,key ahs-log-data)))
 
 (defun ahs-log (key &rest args)
-  "Display log."
+  "Display log, KEY with it's ARGS."
   (unless ahs-suppress-log
     (let* ((data (ahs-log-format key))
            (msg (apply #'format data args))
