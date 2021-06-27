@@ -187,6 +187,7 @@
 ;;
 ;; v1.60
 ;;   allow mouse movement and still be highlighted
+;;   don't remove highlight if symbol are the same as last one
 ;;
 ;; v1.59
 ;;   fix copyright information
@@ -634,7 +635,7 @@ You can do these operations at One Key!
 (defvar ahs-overlay-list nil)
 (defvar ahs-start-modification nil)
 (defvar ahs-start-point nil)
-(defvar ahs-last-hl nil)
+(defvar ahs-last-symbol nil)
 
 (make-variable-buffer-local 'ahs-current-overlay)
 (make-variable-buffer-local 'ahs-current-range)
@@ -647,7 +648,7 @@ You can do these operations at One Key!
 (make-variable-buffer-local 'ahs-overlay-list)
 (make-variable-buffer-local 'ahs-start-modification)
 (make-variable-buffer-local 'ahs-start-point)
-(make-variable-buffer-local 'ahs-last-hl)
+(make-variable-buffer-local 'ahs-last-symbol)
 
 ;;
 ;; (@* "Logging" )
@@ -950,7 +951,6 @@ You can do these operations at One Key!
   (when (and auto-highlight-symbol-mode (not ahs-highlighted))
     (let ((hl (ahs-highlight-p)))
       (when hl
-        (setq ahs-last-hl hl)
         (ahs-highlight (nth 0 hl) (nth 1 hl) (nth 2 hl))))))
 
 (defmacro ahs-add-overlay-face (pos face)
@@ -1138,16 +1138,18 @@ You can do these operations at One Key!
         (setq ahs-highlighted  t
               ahs-start-point  beg
               ahs-search-work  nil
-              ahs-need-fontify nil)
+              ahs-need-fontify nil
+              ahs-last-symbol symbol)
         (add-hook 'post-command-hook #'ahs-unhighlight nil t)
         t))))
 
 (defun ahs-unhighlight (&optional force)
   "Unhighlight"
-  (when (or force (not (memq this-command ahs-unhighlight-allowed-commands)))
-    (unless (equal ahs-last-hl (ahs-highlight-p))
-      (ahs-remove-all-overlay)
-      (remove-hook 'post-command-hook #'ahs-unhighlight t))))
+  (when (or force
+            (and (not (memq this-command ahs-unhighlight-allowed-commands))
+                 (not (equal ahs-last-symbol (thing-at-point 'symbol)))))
+    (ahs-remove-all-overlay)
+    (remove-hook 'post-command-hook #'ahs-unhighlight t)))
 
 (defun ahs-highlight-current-symbol (beg end)
   "Highlight current symbol."
