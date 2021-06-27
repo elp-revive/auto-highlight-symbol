@@ -267,7 +267,7 @@
   (defvar dropdown-list-overlays nil))
 
 (eval-and-compile
-  (defconst ahs-web "http://github.com/mitsuo-saito/auto-highlight-symbol-mode/")
+  (defconst ahs-web "http://github.com/jcs-elpa/auto-highlight-symbol-mode/")
   ;; Compatibility
   (if (or (>= emacs-major-version 24)
           (and (= emacs-major-version 23)
