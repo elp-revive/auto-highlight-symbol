@@ -185,6 +185,9 @@
 
 ;;; (@* "Changelog" )
 ;;
+;; v1.60
+;;   allow mouse movement and still be highlighted
+;;
 ;; v1.59
 ;;   fix copyright information
 ;;
@@ -290,42 +293,42 @@
   :link `(url-link :tag "Information" ,(eval-when-compile ahs-web)))
 
 (defcustom ahs-modes
-  '( actionscript-mode
-     apache-mode
-     bat-generic-mode
-     c++-mode
-     c-mode
-     csharp-mode
-     css-mode
-     dos-mode
-     emacs-lisp-mode
-     html-mode
-     ini-generic-mode
-     java-mode
-     javascript-mode
-     js-mode
-     lisp-interaction-mode
-     lua-mode
-     latex-mode
-     makefile-mode
-     makefile-gmake-mode
-     markdown-mode
-     moccur-edit-mode
-     nxml-mode
-     nxhtml-mode
-     outline-mode
-     perl-mode cperl-mode
-     php-mode
-     python-mode
-     rc-generic-mode
-     reg-generic-mode
-     ruby-mode
-     sgml-mode
-     sh-mode
-     squirrel-mode
-     text-mode
-     tcl-mode
-     visual-basic-mode )
+  '(actionscript-mode
+    apache-mode
+    bat-generic-mode
+    c++-mode
+    c-mode
+    csharp-mode
+    css-mode
+    dos-mode
+    emacs-lisp-mode
+    html-mode
+    ini-generic-mode
+    java-mode
+    javascript-mode
+    js-mode
+    lisp-interaction-mode
+    lua-mode
+    latex-mode
+    makefile-mode
+    makefile-gmake-mode
+    markdown-mode
+    moccur-edit-mode
+    nxml-mode
+    nxhtml-mode
+    outline-mode
+    perl-mode cperl-mode
+    php-mode
+    python-mode
+    rc-generic-mode
+    reg-generic-mode
+    ruby-mode
+    sgml-mode
+    sh-mode
+    squirrel-mode
+    text-mode
+    tcl-mode
+    visual-basic-mode )
   "Major modes function `auto-highlight-symbol-mode' can run on."
   :group 'auto-highlight-symbol
   :type '(repeat symbol))
@@ -515,18 +518,21 @@ This variable can be set in three different types.
   :type 'boolean)
 
 (defcustom ahs-inhibit-face-list
-  '( font-lock-comment-delimiter-face
-     font-lock-comment-face
-     font-lock-doc-face
-     font-lock-doc-string-face
-     font-lock-string-face )
+  '(font-lock-comment-delimiter-face
+    font-lock-comment-face
+    font-lock-doc-face
+    font-lock-doc-string-face
+    font-lock-string-face
+    tree-sitter-hl-face:comment
+    tree-sitter-hl-face:doc
+    tree-sitter-hl-face:string)
   "Face list for inhibit highlighting."
   :group 'auto-highlight-symbol
   :type '(repeat symbol))
 
 (defcustom ahs-definition-face-list
-  '( font-lock-function-name-face
-     font-lock-variable-name-face )
+  '(font-lock-function-name-face
+    font-lock-variable-name-face)
   "Face list for higilight definition."
   :group 'auto-highlight-symbol
   :type  '(repeat symbol))
@@ -628,6 +634,7 @@ You can do these operations at One Key!
 (defvar ahs-overlay-list nil)
 (defvar ahs-start-modification nil)
 (defvar ahs-start-point nil)
+(defvar ahs-last-start-point nil)
 
 (make-variable-buffer-local 'ahs-current-overlay)
 (make-variable-buffer-local 'ahs-current-range)
@@ -640,6 +647,7 @@ You can do these operations at One Key!
 (make-variable-buffer-local 'ahs-overlay-list)
 (make-variable-buffer-local 'ahs-start-modification)
 (make-variable-buffer-local 'ahs-start-point)
+(make-variable-buffer-local 'ahs-last-start-point)
 
 ;;
 ;; (@* "Logging" )
@@ -939,8 +947,7 @@ You can do these operations at One Key!
 
 (defun ahs-idle-function ()
   "Idle function. Called by `ahs-idle-timer'."
-  (when (and auto-highlight-symbol-mode
-             (not ahs-highlighted))
+  (when auto-highlight-symbol-mode
     (let ((hl (ahs-highlight-p)))
       (when hl
         (ahs-highlight (nth 0 hl)
@@ -1129,11 +1136,13 @@ You can do these operations at One Key!
       ;;)
       (when ahs-overlay-list
         (ahs-highlight-current-symbol beg end)
+        (jcs-print ahs-last-start-point beg)
         (setq ahs-highlighted  t
               ahs-start-point  beg
               ahs-search-work  nil
               ahs-need-fontify nil)
-        (add-hook 'pre-command-hook #'ahs-unhighlight nil t) t))))
+        (add-hook 'pre-command-hook #'ahs-unhighlight nil t)
+        t))))
 
 (defun ahs-unhighlight (&optional force)
   "Unhighlight"
@@ -1165,6 +1174,7 @@ You can do these operations at One Key!
         ahs-highlighted         nil
         ahs-opened-overlay-list nil
         ahs-overlay-list        nil
+        ahs-last-start-point    ahs-start-point
         ahs-start-point         nil))
 
 ;;
