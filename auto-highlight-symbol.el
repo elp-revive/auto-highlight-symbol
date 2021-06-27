@@ -634,7 +634,7 @@ You can do these operations at One Key!
 (defvar ahs-overlay-list nil)
 (defvar ahs-start-modification nil)
 (defvar ahs-start-point nil)
-(defvar ahs-last-start-point nil)
+(defvar ahs-last-hl nil)
 
 (make-variable-buffer-local 'ahs-current-overlay)
 (make-variable-buffer-local 'ahs-current-range)
@@ -647,7 +647,7 @@ You can do these operations at One Key!
 (make-variable-buffer-local 'ahs-overlay-list)
 (make-variable-buffer-local 'ahs-start-modification)
 (make-variable-buffer-local 'ahs-start-point)
-(make-variable-buffer-local 'ahs-last-start-point)
+(make-variable-buffer-local 'ahs-last-hl)
 
 ;;
 ;; (@* "Logging" )
@@ -947,12 +947,11 @@ You can do these operations at One Key!
 
 (defun ahs-idle-function ()
   "Idle function. Called by `ahs-idle-timer'."
-  (when auto-highlight-symbol-mode
+  (when (and auto-highlight-symbol-mode (not ahs-highlighted))
     (let ((hl (ahs-highlight-p)))
       (when hl
-        (ahs-highlight (nth 0 hl)
-                       (nth 1 hl)
-                       (nth 2 hl))))))
+        (setq ahs-last-hl hl)
+        (ahs-highlight (nth 0 hl) (nth 1 hl) (nth 2 hl))))))
 
 (defmacro ahs-add-overlay-face (pos face)
   `(if ahs-face-check-include-overlay
@@ -1136,19 +1135,19 @@ You can do these operations at One Key!
       ;;)
       (when ahs-overlay-list
         (ahs-highlight-current-symbol beg end)
-        (jcs-print ahs-last-start-point beg)
         (setq ahs-highlighted  t
               ahs-start-point  beg
               ahs-search-work  nil
               ahs-need-fontify nil)
-        (add-hook 'pre-command-hook #'ahs-unhighlight nil t)
+        (add-hook 'post-command-hook #'ahs-unhighlight nil t)
         t))))
 
 (defun ahs-unhighlight (&optional force)
   "Unhighlight"
   (when (or force (not (memq this-command ahs-unhighlight-allowed-commands)))
-    (ahs-remove-all-overlay)
-    (remove-hook 'pre-command-hook #'ahs-unhighlight t)))
+    (unless (equal ahs-last-hl (ahs-highlight-p))
+      (ahs-remove-all-overlay)
+      (remove-hook 'post-command-hook #'ahs-unhighlight t))))
 
 (defun ahs-highlight-current-symbol (beg end)
   "Highlight current symbol."
@@ -1174,7 +1173,6 @@ You can do these operations at One Key!
         ahs-highlighted         nil
         ahs-opened-overlay-list nil
         ahs-overlay-list        nil
-        ahs-last-start-point    ahs-start-point
         ahs-start-point         nil))
 
 ;;
@@ -1228,7 +1226,7 @@ You can do these operations at One Key!
         ahs-start-modification   nil
         ahs-inhibit-modification nil)
   (overlay-put ahs-current-overlay 'face ahs-edit-mode-face)
-  (remove-hook 'pre-command-hook #'ahs-unhighlight t)
+  (remove-hook 'post-command-hook #'ahs-unhighlight t)
   (add-hook 'post-command-hook #'ahs-edit-post-command-hook-function nil t)
   (run-hooks 'ahs-edit-mode-on-hook)
 
@@ -1260,7 +1258,7 @@ You can do these operations at One Key!
            (ahs-inside-overlay-p ahs-current-overlay))
       (progn
         (overlay-put ahs-current-overlay 'face (ahs-current-plugin-prop 'face))
-        (add-hook 'pre-command-hook #'ahs-unhighlight nil t))
+        (add-hook 'post-command-hook #'ahs-unhighlight nil t))
     (ahs-remove-all-overlay))
   (remove-hook 'post-command-hook #'ahs-edit-post-command-hook-function t)
   (run-hooks 'ahs-edit-mode-off-hook)
