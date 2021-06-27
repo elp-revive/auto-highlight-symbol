@@ -606,8 +606,9 @@ You can do these operations at One Key!
     ahs-display-stat
     ahs-edit-mode
     ahs-forward
-    ahs-forward-definition)
-  "")
+    ahs-forward-definition
+    ignore)
+  "Commands allow to be highlight.")
 
 (defvar ahs-range-plugin-list nil
   "List of installed plugin.")
@@ -1136,9 +1137,7 @@ You can do these operations at One Key!
 
 (defun ahs-unhighlight (&optional force)
   "Unhighlight"
-  (when (or force
-            (not (memq this-command
-                       ahs-unhighlight-allowed-commands)))
+  (when (or force (not (memq this-command ahs-unhighlight-allowed-commands)))
     (ahs-remove-all-overlay)
     (remove-hook 'pre-command-hook #'ahs-unhighlight t)))
 
