@@ -933,7 +933,7 @@ You can do these operations at One Key!
 (defun ahs-start-timer ()
   "Start idle timer."
   (when auto-highlight-symbol-mode
-    (ahs-unhighlight t)
+    (ahs-unhighlight)
     (when (timerp ahs-idle-timer) (cancel-timer ahs-idle-timer))
     (setq ahs-idle-timer
           (run-with-idle-timer ahs-idle-interval nil #'ahs-idle-function))))
@@ -1128,7 +1128,6 @@ You can do these operations at One Key!
 
 (defun ahs-highlight (symbol beg end)
   "Highlight"
-  (ahs-unhighlight t)
   (setq ahs-search-work  nil
         ahs-need-fontify nil)
   (let ((search-range (ahs-prepare-highlight symbol)))
