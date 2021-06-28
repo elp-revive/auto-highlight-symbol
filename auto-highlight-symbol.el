@@ -10,7 +10,7 @@
 ;; Version: 1.60
 ;; Keywords: highlight face match convenience
 ;; URL: http://github.com/jcs-elpa/auto-highlight-symbol
-;; Compatibility: GNU Emacs 22.3 23.x 24.x later
+;; Package-Requires: ((emacs "24.4") (ht "2.3"))
 ;;
 ;; This file is NOT part of GNU Emacs.
 
@@ -264,6 +264,7 @@
   ;; Suppress bytecompiler error warning
   (require 'easy-mmode)
   (require 'cl-lib)
+  (require 'ht)
   (defvar dropdown-list-overlays nil))
 
 (eval-and-compile
@@ -625,31 +626,20 @@ You can do these operations at One Key!
 (defvar ahs-need-fontify nil)
 
 ;; Buffer local variable
-(defvar ahs-current-overlay nil)
-(defvar ahs-current-range nil)
-(defvar ahs-edit-mode-enable nil)
-(defvar ahs-highlighted nil)
-(defvar ahs-inhibit-modification nil)
-(defvar ahs-mode-line nil)
-(defvar ahs-onekey-range-store nil)
-(defvar ahs-opened-overlay-list nil)
-(defvar ahs-overlay-list nil)
-(defvar ahs-start-modification nil)
-(defvar ahs-start-point nil)
-(defvar ahs-last-symbol nil)
+(defvar-local ahs-current-overlay nil)
+(defvar-local ahs-current-range nil)
+(defvar-local ahs-edit-mode-enable nil)
+(defvar-local ahs-highlighted nil)
+(defvar-local ahs-inhibit-modification nil)
+(defvar-local ahs-mode-line nil)
+(defvar-local ahs-onekey-range-store nil)
+(defvar-local ahs-opened-overlay-list nil)
+(defvar-local ahs-overlay-list nil)
+(defvar-local ahs-start-modification nil)
+(defvar-local ahs-start-point nil)
 
-(make-variable-buffer-local 'ahs-current-overlay)
-(make-variable-buffer-local 'ahs-current-range)
-(make-variable-buffer-local 'ahs-edit-mode-enable)
-(make-variable-buffer-local 'ahs-highlighted)
-(make-variable-buffer-local 'ahs-inhibit-modification)
-(make-variable-buffer-local 'ahs-mode-line)
-(make-variable-buffer-local 'ahs-onekey-range-store)
-(make-variable-buffer-local 'ahs-opened-overlay-list)
-(make-variable-buffer-local 'ahs-overlay-list)
-(make-variable-buffer-local 'ahs-start-modification)
-(make-variable-buffer-local 'ahs-start-point)
-(make-variable-buffer-local 'ahs-last-symbol)
+(defvar-local ahs-last-symbol nil)
+(defvar ahs-last-window nil)
 
 ;;
 ;; (@* "Logging" )
@@ -961,7 +951,8 @@ You can do these operations at One Key!
        (append (ahs-get-overlay-face ,pos)
                (if (listp ,face)
                    ,face
-                 (list ,face))) ,face))
+                 (list ,face)))
+     ,face))
 
 (defun ahs-highlight-p ()
   "Ruturn Non-nil if symbols can be highlighted."
@@ -1118,6 +1109,7 @@ You can do these operations at One Key!
            unless (ahs-face-p face 'ahs-inhibit-face-list)
            do (let ((overlay (make-overlay beg end nil nil t)))
                 (overlay-put overlay 'ahs-symbol t)
+                (overlay-put overlay 'window (selected-window))
                 (overlay-put overlay 'face
                              (if (ahs-face-p face 'ahs-definition-face-list)
                                  ahs-definition-face
@@ -1132,8 +1124,7 @@ You can do these operations at One Key!
     (when (consp search-range)
       ;;(msell-bench
       (ahs-search-symbol symbol search-range)
-      (when ahs-need-fontify
-        (ahs-fontify))
+      (when ahs-need-fontify (ahs-fontify))
       (ahs-light-up)
       ;;)
       (when ahs-overlay-list
@@ -1143,25 +1134,37 @@ You can do these operations at One Key!
               ahs-search-work  nil
               ahs-need-fontify nil
               ahs-last-symbol symbol)
+        (add-hook 'pre-command-hook #'ahs-test nil t)
         (add-hook 'post-command-hook #'ahs-unhighlight nil t)
         t))))
 
 (defun ahs-unhighlight (&optional force)
   "Unhighlight"
+  (unless (eq ahs-last-window (selected-window))
+    (ahs-with-selected-window ahs-last-window
+      ;;(ahs-idle-function)
+      ))
   (when (or force
             (and (not (memq this-command ahs-unhighlight-allowed-commands))
-                 (not (equal ahs-last-symbol (thing-at-point 'symbol)))))
-    (ahs-remove-all-overlay)
+                 (not (equal ahs-last-symbol (thing-at-point 'symbol)))
+                 (eq ahs-last-window (selected-window))))
+    (ahs-remove-all-overlay force)
     (remove-hook 'post-command-hook #'ahs-unhighlight t)))
+
+(defun ahs-test ()
+  ""
+  (setq ahs-last-window (selected-window))
+  )
 
 (defun ahs-highlight-current-symbol (beg end)
   "Highlight current symbol."
-  (let* ((overlay  (make-overlay beg end nil nil t)))
+  (let* ((overlay (make-overlay beg end nil nil t)))
 
     (overlay-put overlay 'ahs-symbol 'current)
     (overlay-put overlay 'priority 1000)
     (overlay-put overlay 'face (ahs-current-plugin-prop 'face))
     (overlay-put overlay 'help-echo '(ahs-stat-string))
+    (overlay-put overlay 'window (selected-window))
 
     (overlay-put overlay 'modification-hooks    '(ahs-modification-hook))
     (overlay-put overlay 'insert-in-front-hooks '(ahs-modification-hook))
@@ -1169,10 +1172,13 @@ You can do these operations at One Key!
 
     (setq ahs-current-overlay overlay)))
 
-(defun ahs-remove-all-overlay ()
+(defun ahs-remove-all-overlay (&optional force)
   "Remove all overlays."
-  (delete-overlay ahs-current-overlay)
-  (mapc 'delete-overlay ahs-overlay-list)
+  (when (overlayp ahs-current-overlay) (delete-overlay ahs-current-overlay))
+  ;; Make sure we only deletes the current window's overlay
+  (dolist (ov (ahs-util-overlays-in 'ahs-symbol t))
+    (when (or force (eq (overlay-get ov 'window) (selected-window)))
+      (delete-overlay ov)))
   (mapc 'ahs-open-necessary-overlay ahs-opened-overlay-list)
   (setq ahs-current-overlay     nil
         ahs-highlighted         nil
@@ -1526,6 +1532,26 @@ You can do these operations at One Key!
   (if (and (not (minibufferp (current-buffer)))
            (memq major-mode ahs-modes))
       (auto-highlight-symbol-mode t)))
+
+(defmacro ahs-with-selected-window (window &rest body)
+  "Same as macro `with-selected-window' but execute only when window is alive."
+  (declare (indent 1) (debug t))
+  `(when ,window (with-selected-window ,window (progn ,@body))))
+
+(defmacro ahs-with-current-buffer (buffer-or-name &rest body)
+  "Same as macro `with-current-buffer' but execute only when buffer is alive."
+  (declare (indent 1) (debug t))
+  `(when (buffer-live-p ,buffer-or-name)
+     (with-current-buffer ,buffer-or-name (progn ,@body))))
+
+(defun ahs-util-overlays-in (prop name &optional beg end)
+  "Return overlays with PROP of NAME, from region BEG to END."
+  (unless beg (setq beg (point-min))) (unless end (setq end (point-max)))
+  (let ((lst '()) (ovs (overlays-in beg end)))
+    (dolist (ov ovs)
+      (when (eq name (overlay-get ov prop))
+        (push ov lst)))
+    lst))
 
 ;;
 ;; (@* "Interactive" )
