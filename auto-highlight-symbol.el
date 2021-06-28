@@ -185,6 +185,9 @@
 
 ;;; (@* "Changelog" )
 ;;
+;; v1.61
+;;   prevent unhighlight even window isn't the selected one
+;;
 ;; v1.60
 ;;   allow mouse movement and still be highlighted
 ;;   don't remove highlight if symbol are the same as last one
