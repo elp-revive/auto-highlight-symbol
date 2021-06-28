@@ -1665,6 +1665,21 @@ That's all."
   :lighter ahs-mode-line
   (if auto-highlight-symbol-mode (ahs-init) (ahs-clear)))
 
+;;
+;; (@* "Unfocus" )
+;;
+
+(defun ahs-focus-out (&rest _)
+  "Focus out hook."
+  (setq ahs-selected-window nil)
+  (walk-windows (lambda (win) (with-selected-window win (ahs--do-hl)))))
+
+(eval-and-compile
+  (if (< emacs-major-version 27)
+      (add-hook 'focus-out-hook #'ahs-focus-out)
+    (add-function :after after-focus-change-function
+                  (lambda (&rest _) (unless (frame-focus-state) (ahs-focus-out))))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (provide 'auto-highlight-symbol)
