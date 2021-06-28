@@ -435,17 +435,23 @@ Affects only overlay(hidden text) has a property `isearch-open-invisible'."
   :group 'auto-highlight-symbol)
 (defvar ahs-definition-face-unfocused 'ahs-definition-face-unfocused)
 
+(defface ahs-plugin-defalt-face
+  '((t (:foreground "Black" :background "Orange1")))
+  "Face used in `display' plugin (current)."
+  :group 'auto-highlight-symbol)
+(defvar ahs-plugin-defalt-face 'ahs-plugin-defalt-face)
+
+(defface ahs-plugin-defalt-face-unfocused
+  '((t (:foreground "Black" :background "Orange1")))
+  "Face used in `display' plugin (unfocused)."
+  :group 'auto-highlight-symbol)
+(defvar ahs-plugin-defalt-face-unfocused 'ahs-plugin-defalt-face-unfocused)
+
 (defface ahs-warning-face
   '((t (:foreground "Red" :bold t)))
   "Face for warning message."
   :group 'auto-highlight-symbol)
 (defvar ahs-warning-face 'ahs-warning-face)
-
-(defface ahs-plugin-defalt-face
-  '((t (:foreground "Black" :background "Orange1")))
-  "Face used in `display' plugin."
-  :group 'auto-highlight-symbol)
-(defvar ahs-plugin-defalt-face 'ahs-plugin-defalt-face)
 
 (defface ahs-plugin-whole-buffer-face
   '((t (:foreground "Black" :background "GreenYellow")))
@@ -740,7 +746,7 @@ You can do these operations at One Key!
         (ahs-log-echo-area-only))
     (ahs-log 'plugin-error-log1)
     (ahs-log 'plugin-error-log2
-             err (ahs-get-plugin-prop 'name range) prop) ;; infinite loop? if 'name is badly function
+             err (ahs-get-plugin-prop 'name range) prop)  ;; infinite loop? if 'name is badly function
     (ahs-log 'plugin-error-log3)
 
     (ahs-change-range-internal ahs-default-range)
@@ -751,15 +757,13 @@ You can do these operations at One Key!
   "Return value of the `PROP' property of the `RANGE' plugin."
   (let ((value (cdr (assoc prop (symbol-value range)))))
     (cond
-     ((equal value 'abort) 'abort)          ;; abort
-     ((equal prop 'face)                    ;; face
-      (if (facep value)
-          value
-        ahs-plugin-defalt-face))
+     ((equal value 'abort) 'abort)           ; abort
+     ((equal prop 'face)                     ; face
+      (if (facep value) value ahs-plugin-defalt-face))
 
      ((and (functionp value)
-           (equal prop 'major-mode)) value) ;; major-mode
-     ((functionp value)                     ;; function
+           (equal prop 'major-mode)) value)  ; major-mode
+     ((functionp value)                      ; function
       (condition-case err
           (if arg
               (funcall value arg)
@@ -768,12 +772,12 @@ You can do these operations at One Key!
                (ahs-plugin-error-message err prop range)
                'abort)))
 
-     ((null value) 'none)                   ;; property not found
+     ((null value) 'none)                    ; property not found
 
-     ((symbolp value)                       ;; symbol
+     ((symbolp value)                        ; symbol
       (ignore-errors
         (symbol-value value)))
-     (t value))))                           ;; others
+     (t value))))                            ; others
 
 (defun ahs-current-plugin-prop (prop &optional arg)
   "Return value of the `PROP' property of the current plugin."
@@ -1130,15 +1134,17 @@ You can do these operations at One Key!
   "Highlight"
   (setq ahs-search-work  nil
         ahs-need-fontify nil)
-  (let ((search-range (ahs-prepare-highlight symbol)))
+  (let ((search-range (ahs-prepare-highlight symbol))
+        (current (eq (selected-window) ahs-selected-window)))
     (when (consp search-range)
       ;;(msell-bench
       (ahs-search-symbol symbol search-range)
       (when ahs-need-fontify (ahs-fontify))
-      (ahs-light-up (eq (selected-window) ahs-selected-window))
+      (ahs-unhighlight t)
+      (ahs-light-up current)
       ;;)
       (when ahs-overlay-list
-        (ahs-highlight-current-symbol beg end)
+        (ahs-highlight-current-symbol current beg end)
         (setq ahs-highlighted  t
               ahs-start-point  beg
               ahs-search-work  nil
@@ -1153,13 +1159,13 @@ You can do these operations at One Key!
                  (not (equal (ht-get ahs-window-map (selected-window)) (thing-at-point 'symbol)))))
     (ahs-remove-all-overlay force)))
 
-(defun ahs-highlight-current-symbol (beg end)
+(defun ahs-highlight-current-symbol (current beg end)
   "Highlight current symbol."
   (let* ((overlay (make-overlay beg end nil nil t)))
 
     (overlay-put overlay 'ahs-symbol 'current)
     (overlay-put overlay 'priority 1000)
-    (overlay-put overlay 'face (ahs-current-plugin-prop 'face))
+    (overlay-put overlay 'face (if current ahs-plugin-defalt-face ahs-plugin-defalt-face-unfocused))
     (overlay-put overlay 'help-echo '(ahs-stat-string))
     (overlay-put overlay 'window (selected-window))
 
