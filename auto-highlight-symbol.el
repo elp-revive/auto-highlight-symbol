@@ -330,7 +330,7 @@
     squirrel-mode
     text-mode
     tcl-mode
-    visual-basic-mode )
+    visual-basic-mode)
   "Major modes function `auto-highlight-symbol-mode' can run on."
   :group 'auto-highlight-symbol
   :type '(repeat symbol))
@@ -638,8 +638,8 @@ You can do these operations at One Key!
 (defvar-local ahs-start-modification nil)
 (defvar-local ahs-start-point nil)
 
-(defvar-local ahs-last-symbol nil)
 (defvar ahs-last-window nil)
+(defvar ahs-window-map (ht-create))
 
 ;;
 ;; (@* "Logging" )
@@ -1132,29 +1132,18 @@ You can do these operations at One Key!
         (setq ahs-highlighted  t
               ahs-start-point  beg
               ahs-search-work  nil
-              ahs-need-fontify nil
-              ahs-last-symbol symbol)
-        (add-hook 'pre-command-hook #'ahs-test nil t)
+              ahs-need-fontify nil)
+        (ht-set ahs-window-map (selected-window) symbol)
         (add-hook 'post-command-hook #'ahs-unhighlight nil t)
         t))))
 
 (defun ahs-unhighlight (&optional force)
   "Unhighlight"
-  (unless (eq ahs-last-window (selected-window))
-    (ahs-with-selected-window ahs-last-window
-      ;;(ahs-idle-function)
-      ))
   (when (or force
             (and (not (memq this-command ahs-unhighlight-allowed-commands))
-                 (not (equal ahs-last-symbol (thing-at-point 'symbol)))
-                 (eq ahs-last-window (selected-window))))
+                 (not (equal (ht-get ahs-window-map (selected-window)) (thing-at-point 'symbol)))))
     (ahs-remove-all-overlay force)
     (remove-hook 'post-command-hook #'ahs-unhighlight t)))
-
-(defun ahs-test ()
-  ""
-  (setq ahs-last-window (selected-window))
-  )
 
 (defun ahs-highlight-current-symbol (beg end)
   "Highlight current symbol."
