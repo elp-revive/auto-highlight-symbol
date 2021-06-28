@@ -396,7 +396,7 @@ Affects only overlay(hidden text) has a property `isearch-open-invisible'."
   :group 'auto-highlight-symbol
   :type 'hook)
 
-(defvar ahs-idle-timer nil
+(defvar-local ahs-idle-timer nil
   "Timer used to highlighting symbol whenever Emacs is idle.")
 
 (defcustom ahs-idle-interval 1.0
@@ -638,7 +638,6 @@ You can do these operations at One Key!
 (defvar-local ahs-start-modification nil)
 (defvar-local ahs-start-point nil)
 
-(defvar ahs-last-window nil)
 (defvar ahs-window-map (ht-create))
 
 ;;
@@ -873,8 +872,7 @@ You can do these operations at One Key!
 (defun ahs-plugin-ahs-bod ()
   "Another narrow-to-defun."
   (condition-case err
-      (let ((opoint (point))
-            beg end)
+      (let ((opoint (point)) beg end)
         ;; Point in function
         (beginning-of-defun)
         (setq beg (point))
@@ -924,9 +922,9 @@ You can do these operations at One Key!
 
 (defun ahs-start-timer ()
   "Start idle timer."
-  (unless ahs-idle-timer
-    (setq ahs-idle-timer
-          (run-with-idle-timer ahs-idle-interval t #'ahs-idle-function))))
+  (when (timerp ahs-idle-timer) (cancel-timer ahs-idle-timer))
+  (setq ahs-idle-timer
+        (run-with-timer ahs-idle-interval nil #'ahs-idle-function)))
 
 (defun ahs-restart-timer ()
   "Restart idle timer."
@@ -941,10 +939,13 @@ You can do these operations at One Key!
 
 (defun ahs-idle-function ()
   "Idle function. Called by `ahs-idle-timer'."
-  (when (and auto-highlight-symbol-mode (not ahs-highlighted))
+  (walk-windows (lambda (win) (with-selected-window win (ahs--do-hl)))))
+
+(defun ahs--do-hl ()
+  "Do the highlighting."
+  (when auto-highlight-symbol-mode
     (let ((hl (ahs-highlight-p)))
-      (when hl
-        (ahs-highlight (nth 0 hl) (nth 1 hl) (nth 2 hl))))))
+      (when hl (ahs-highlight (nth 0 hl) (nth 1 hl) (nth 2 hl))))))
 
 (defmacro ahs-add-overlay-face (pos face)
   `(if ahs-face-check-include-overlay
@@ -1048,7 +1049,8 @@ You can do these operations at One Key!
             (setq ahs-need-fontify t))
           (push (list symbol-beg
                       symbol-end
-                      face fontified) ahs-search-work))))))
+                      face fontified)
+                ahs-search-work))))))
 
 (defun ahs-fontify ()
   "Fontify symbols for strict check."
@@ -1163,7 +1165,7 @@ You can do these operations at One Key!
 
 (defun ahs-remove-all-overlay (&optional force)
   "Remove all overlays."
-  (when (overlayp ahs-current-overlay) (delete-overlay ahs-current-overlay))
+  (remove-overlays (point-min) (point-max) 'ahs-symbol 'current)
   ;; Make sure we only deletes the current window's overlay
   (dolist (ov (ahs-util-overlays-in 'ahs-symbol t))
     (when (or force (eq (overlay-get ov 'window) (selected-window)))
@@ -1507,14 +1509,15 @@ You can do these operations at One Key!
   (unless ahs-current-range
     (ahs-change-range-internal ahs-default-range))
   (ahs-set-lighter)
-  (ahs-start-timer))
+  (add-hook 'post-command-hook #'ahs-start-timer nil t))
 
 (defun ahs-clear (&optional verbose)
   "Remove all overlays and exit edit mode."
   (if ahs-edit-mode-enable
       (ahs-edit-mode-off (not verbose) nil)
-    (when ahs-highlighted
-      (ahs-unhighlight t))))
+    (when ahs-highlighted (ahs-unhighlight t))
+    (ht-clear ahs-window-map)
+    (remove-hook 'post-command-hook #'ahs-start-timer t)))
 
 (defun ahs-mode-maybe ()
   "Fire up `auto-highlight-symbol-mode' if major-mode in ahs-modes."
@@ -1525,7 +1528,7 @@ You can do these operations at One Key!
 (defmacro ahs-with-selected-window (window &rest body)
   "Same as macro `with-selected-window' but execute only when window is alive."
   (declare (indent 1) (debug t))
-  `(when ,window (with-selected-window ,window (progn ,@body))))
+  `(when (window-live-p ,window) (with-selected-window ,window (progn ,@body))))
 
 (defmacro ahs-with-current-buffer (buffer-or-name &rest body)
   "Same as macro `with-current-buffer' but execute only when buffer is alive."
@@ -1665,9 +1668,7 @@ That's all."
   "Toggle Auto Highlight Symbol Mode"
   :group 'auto-highlight-symbol
   :lighter ahs-mode-line
-  (if auto-highlight-symbol-mode
-      (ahs-init)
-    (ahs-clear)))
+  (if auto-highlight-symbol-mode (ahs-init) (ahs-clear)))
 
 ;;
 ;; (@* "Revert" )
