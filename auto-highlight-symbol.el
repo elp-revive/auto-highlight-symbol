@@ -932,9 +932,11 @@ You can do these operations at One Key!
 
 (defun ahs-start-timer ()
   "Start idle timer."
-  (when (timerp ahs-idle-timer) (cancel-timer ahs-idle-timer))
-  (setq ahs-idle-timer
-        (run-with-idle-timer ahs-idle-interval nil #'ahs-idle-function)))
+  (when auto-highlight-symbol-mode
+    (ahs-unhighlight t)
+    (when (timerp ahs-idle-timer) (cancel-timer ahs-idle-timer))
+    (setq ahs-idle-timer
+          (run-with-idle-timer ahs-idle-interval nil #'ahs-idle-function))))
 
 ;;
 ;; (@* "Idle" )
@@ -948,7 +950,6 @@ You can do these operations at One Key!
 (defun ahs--do-hl ()
   "Do the highlighting."
   (when auto-highlight-symbol-mode
-    ()
     (let ((hl (ahs-highlight-p)))
       (when hl (ahs-highlight (nth 0 hl) (nth 1 hl) (nth 2 hl))))))
 
@@ -1127,6 +1128,7 @@ You can do these operations at One Key!
 
 (defun ahs-highlight (symbol beg end)
   "Highlight"
+  (ahs-unhighlight t)
   (setq ahs-search-work  nil
         ahs-need-fontify nil)
   (let ((search-range (ahs-prepare-highlight symbol)))
@@ -1143,7 +1145,6 @@ You can do these operations at One Key!
               ahs-search-work  nil
               ahs-need-fontify nil)
         (ht-set ahs-window-map (selected-window) symbol)
-        (add-hook 'post-command-hook #'ahs-unhighlight nil t)
         t))))
 
 (defun ahs-unhighlight (&optional force)
@@ -1151,8 +1152,7 @@ You can do these operations at One Key!
   (when (or force
             (and (not (memq this-command ahs-unhighlight-allowed-commands))
                  (not (equal (ht-get ahs-window-map (selected-window)) (thing-at-point 'symbol)))))
-    (ahs-remove-all-overlay force)
-    (remove-hook 'post-command-hook #'ahs-unhighlight t)))
+    (ahs-remove-all-overlay force)))
 
 (defun ahs-highlight-current-symbol (beg end)
   "Highlight current symbol."
@@ -1524,7 +1524,8 @@ You can do these operations at One Key!
       (ahs-edit-mode-off (not verbose) nil)
     (when ahs-highlighted (ahs-unhighlight t))
     (ht-clear ahs-window-map)
-    (remove-hook 'post-command-hook #'ahs-start-timer t)))
+    (unless revert-buffer-in-progress-p
+      (remove-hook 'post-command-hook #'ahs-start-timer t))))
 
 (defun ahs-mode-maybe ()
   "Fire up `auto-highlight-symbol-mode' if major-mode in ahs-modes."
