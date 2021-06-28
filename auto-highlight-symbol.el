@@ -1518,14 +1518,13 @@ You can do these operations at One Key!
   (ahs-set-lighter)
   (add-hook 'post-command-hook #'ahs-start-timer nil t))
 
-(defun ahs-clear (&optional verbose)
+(defun ahsw-clear (&optional verbose)
   "Remove all overlays and exit edit mode."
   (if ahs-edit-mode-enable
       (ahs-edit-mode-off (not verbose) nil)
     (when ahs-highlighted (ahs-unhighlight t))
     (ht-clear ahs-window-map)
-    (unless revert-buffer-in-progress-p
-      (remove-hook 'post-command-hook #'ahs-start-timer t))))
+    (remove-hook 'post-command-hook #'ahs-start-timer t)))
 
 (defun ahs-mode-maybe ()
   "Fire up `auto-highlight-symbol-mode' if major-mode in ahs-modes."
@@ -1660,13 +1659,6 @@ That's all."
   :group 'auto-highlight-symbol
   :lighter ahs-mode-line
   (if auto-highlight-symbol-mode (ahs-init) (ahs-clear)))
-
-;;
-;; (@* "Revert" )
-;;
-
-;; Remove all overlays and exit edit mode before revert-buffer
-(add-hook 'before-revert-hook #'ahs-clear)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 
