@@ -948,6 +948,7 @@ You can do these operations at One Key!
 (defun ahs--do-hl ()
   "Do the highlighting."
   (when auto-highlight-symbol-mode
+    ()
     (let ((hl (ahs-highlight-p)))
       (when hl (ahs-highlight (nth 0 hl) (nth 1 hl) (nth 2 hl))))))
 
