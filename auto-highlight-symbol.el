@@ -405,13 +405,7 @@ Affects only overlay(hidden text) has a property `isearch-open-invisible'."
 (defcustom ahs-idle-interval 1.0
   "Number of seconds to wait before highlighting symbol."
   :group 'auto-highlight-symbol
-  :type 'float
-  :set (lambda (symbol value)
-         (set-default symbol value)
-         (when (timerp ahs-idle-timer)
-           (cancel-timer ahs-idle-timer)
-           (setq ahs-idle-timer nil)
-           (ahs-start-timer))))
+  :type 'float)
 
 ;;
 ;; (@* "Face" )
@@ -928,13 +922,6 @@ You can do these operations at One Key!
   (when (timerp ahs-idle-timer) (cancel-timer ahs-idle-timer))
   (setq ahs-idle-timer
         (run-with-idle-timer ahs-idle-interval nil #'ahs-idle-function)))
-
-(defun ahs-restart-timer ()
-  "Restart idle timer."
-  (when (timerp ahs-idle-timer)
-    (cancel-timer ahs-idle-timer)
-    (setq ahs-idle-timer nil)
-    (ahs-start-timer)))
 
 ;;
 ;; (@* "Idle" )
@@ -1588,10 +1575,8 @@ Limitation:
 (defun ahs-set-idle-interval (secs)
   "Set wait until highlighting symbol when emacs is idle."
   (interactive "nSeconds to idle, before highlighting symbol: ")
-  (when (and (numberp secs)
-             (not (equal secs 0)))
-    (setq ahs-idle-interval secs)
-    (ahs-restart-timer)))
+  (when (and (numberp secs) (not (equal secs 0)))
+    (setq ahs-idle-interval secs)))
 
 (defun ahs-display-stat ()
   "Display current status.
