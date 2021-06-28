@@ -413,15 +413,27 @@ Affects only overlay(hidden text) has a property `isearch-open-invisible'."
 
 (defface ahs-face
   '((t (:foreground "GhostWhite" :background "LightYellow4")))
-  "Highlight the symbol using this face."
+  "Highlight the symbol using this face (current)."
   :group 'auto-highlight-symbol)
 (defvar ahs-face 'ahs-face)
 
 (defface ahs-definition-face
   '((t (:foreground "moccasin" :background "CadetBlue")))
-  "Highlight the symbol definition using this face."
+  "Highlight the symbol definition using this face (current)."
   :group 'auto-highlight-symbol)
 (defvar ahs-definition-face 'ahs-definition-face)
+
+(defface ahs-face-unfocused
+  '((t (:foreground "GhostWhite" :background "LightYellow4")))
+  "Highlight the symbol using this face (unfocused)."
+  :group 'auto-highlight-symbol)
+(defvar ahs-face-unfocused 'ahs-face-unfocused)
+
+(defface ahs-definition-face-unfocused
+  '((t (:foreground "moccasin" :background "CadetBlue")))
+  "Highlight the symbol definition using this face (unfocused)."
+  :group 'auto-highlight-symbol)
+(defvar ahs-definition-face-unfocused 'ahs-definition-face-unfocused)
 
 (defface ahs-warning-face
   '((t (:foreground "Red" :bold t)))
@@ -636,6 +648,7 @@ You can do these operations at One Key!
 (defvar-local ahs-start-point nil)
 
 (defvar ahs-window-map (ht-create))
+(defvar ahs-selected-window nil)
 
 ;;
 ;; (@* "Logging" )
@@ -929,6 +942,7 @@ You can do these operations at One Key!
 
 (defun ahs-idle-function ()
   "Idle function. Called by `ahs-idle-timer'."
+  (setq ahs-selected-window (selected-window))
   (walk-windows (lambda (win) (with-selected-window win (ahs--do-hl)))))
 
 (defun ahs--do-hl ()
@@ -1088,7 +1102,7 @@ You can do these operations at One Key!
            do (when (and beg end)
                 (jit-lock-fontify-now beg end))))
 
-(defun ahs-light-up ()
+(defun ahs-light-up (current)
   "Light up symbols."
   (cl-loop for symbol in ahs-search-work
 
@@ -1104,8 +1118,10 @@ You can do these operations at One Key!
                 (overlay-put overlay 'window (selected-window))
                 (overlay-put overlay 'face
                              (if (ahs-face-p face 'ahs-definition-face-list)
-                                 ahs-definition-face
-                               ahs-face))
+                                 (if current ahs-definition-face
+                                   ahs-definition-face-unfocused)
+                               (if current ahs-face
+                                 ahs-face-unfocused)))
                 (push overlay ahs-overlay-list))))
 
 (defun ahs-highlight (symbol beg end)
@@ -1117,7 +1133,7 @@ You can do these operations at One Key!
       ;;(msell-bench
       (ahs-search-symbol symbol search-range)
       (when ahs-need-fontify (ahs-fontify))
-      (ahs-light-up)
+      (ahs-light-up (eq (selected-window) ahs-selected-window))
       ;;)
       (when ahs-overlay-list
         (ahs-highlight-current-symbol beg end)
@@ -1412,7 +1428,7 @@ You can do these operations at One Key!
   (overlay-put overlay to (overlay-get overlay from))
   (overlay-put overlay from nil))
 
-;; No doc xD
+;; These are use for navigation
 (defun ahs-forward-p        (x) (< (overlay-start ahs-current-overlay) (overlay-start x)))
 (defun ahs-backward-p       (x) (> (overlay-start ahs-current-overlay) (overlay-start x)))
 (defun ahs-definition-p     (x) (eq (overlay-get x 'face) 'ahs-definition-face))
