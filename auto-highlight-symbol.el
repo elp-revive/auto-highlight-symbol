@@ -937,7 +937,7 @@ You can do these operations at One Key!
 (defun ahs-start-timer ()
   "Start idle timer."
   (when auto-highlight-symbol-mode
-    (ahs-unhighlight)
+    (ahs-unhighlight t)
     (when (timerp ahs-idle-timer) (cancel-timer ahs-idle-timer))
     (setq ahs-idle-timer
           (run-with-idle-timer ahs-idle-interval nil #'ahs-idle-function))))
@@ -1140,7 +1140,7 @@ You can do these operations at One Key!
       ;;(msell-bench
       (ahs-search-symbol symbol search-range)
       (when ahs-need-fontify (ahs-fontify))
-      (ahs-unhighlight t)
+      (ahs-unhighlight)
       (ahs-light-up current)
       ;;)
       (when ahs-overlay-list
@@ -1177,7 +1177,9 @@ You can do these operations at One Key!
 
 (defun ahs-remove-all-overlay (&optional force)
   "Remove all overlays."
-  (remove-overlays (point-min) (point-max) 'ahs-symbol 'current)
+  (dolist (ov (ahs-util-overlays-in 'ahs-symbol 'current))
+    (when (or force (eq (overlay-get ov 'window) (selected-window)))
+      (delete-overlay ov)))
   ;; Make sure we only deletes the current window's overlay
   (dolist (ov (ahs-util-overlays-in 'ahs-symbol t))
     (when (or force (eq (overlay-get ov 'window) (selected-window)))
