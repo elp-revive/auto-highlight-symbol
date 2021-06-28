@@ -924,7 +924,7 @@ You can do these operations at One Key!
   "Start idle timer."
   (when (timerp ahs-idle-timer) (cancel-timer ahs-idle-timer))
   (setq ahs-idle-timer
-        (run-with-timer ahs-idle-interval nil #'ahs-idle-function)))
+        (run-with-idle-timer ahs-idle-interval nil #'ahs-idle-function)))
 
 (defun ahs-restart-timer ()
   "Restart idle timer."
@@ -1525,17 +1525,6 @@ You can do these operations at One Key!
            (memq major-mode ahs-modes))
       (auto-highlight-symbol-mode t)))
 
-(defmacro ahs-with-selected-window (window &rest body)
-  "Same as macro `with-selected-window' but execute only when window is alive."
-  (declare (indent 1) (debug t))
-  `(when (window-live-p ,window) (with-selected-window ,window (progn ,@body))))
-
-(defmacro ahs-with-current-buffer (buffer-or-name &rest body)
-  "Same as macro `with-current-buffer' but execute only when buffer is alive."
-  (declare (indent 1) (debug t))
-  `(when (buffer-live-p ,buffer-or-name)
-     (with-current-buffer ,buffer-or-name (progn ,@body))))
-
 (defun ahs-util-overlays-in (prop name &optional beg end)
   "Return overlays with PROP of NAME, from region BEG to END."
   (unless beg (setq beg (point-min))) (unless end (setq end (point-max)))
@@ -1582,8 +1571,7 @@ Limitation:
   (interactive)
   (ahs-clear (not nomsg))
 
-  (when (if range
-            (ahs-valid-plugin-p range)
+  (when (if range (ahs-valid-plugin-p range)
           (setq range (ahs-runnable-plugins t)))
     (ahs-change-range-internal range)
     (let ((ahs-suppress-log nomsg))
@@ -1638,13 +1626,10 @@ That's all."
 (defun ahs-edit-mode (arg &optional temporary)
   "Turn on edit mode. With a prefix argument, current plugin change to `whole buffer' temporary."
   (interactive
-   (if ahs-edit-mode-enable
-       (list nil)
+   (if ahs-edit-mode-enable (list nil)
      (list t current-prefix-arg)))
 
-  (when (and arg
-             (not temporary))
-    (ahs-idle-function))
+  (when (and arg (not temporary)) (ahs-idle-function))
 
   (cond
    ((and arg temporary)
