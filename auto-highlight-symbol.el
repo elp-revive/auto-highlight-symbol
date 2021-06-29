@@ -984,21 +984,11 @@ You can do these operations at One Key!
   "Do the highlighting."
   (ahs-unhighlight t)
   (when (and auto-highlight-symbol-mode
-             (not (ahs--disabled-minor-modes-p))
+             (not (cl-some (lambda (m) (ignore-errors (symbol-value m))) ahs-disabled-minor-modes))
              (not (memq this-command ahs-disabled-commands))
              (not (cl-some (lambda (flag) (symbol-value flag)) ahs-disabled-flags)))
     (let ((hl (ahs-highlight-p)))
       (when hl (ahs-highlight (nth 0 hl) (nth 1 hl) (nth 2 hl))))))
-
-(defun ahs--disabled-minor-modes-p ()
-  "Return non-nil, if there is at least one minor mode active."
-  (let ((index 0) ret m-mode)
-    (while (and (not ret)
-                (< index (length ahs-disabled-minor-modes)))
-      (setq m-mode (nth index ahs-disabled-minor-modes)
-            ret (ignore-errors (symbol-value m-mode)))
-      (setq index (1+ index)))
-    ret))
 
 (defmacro ahs-add-overlay-face (pos face)
   "Not documented, POS, FACE."
