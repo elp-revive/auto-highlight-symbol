@@ -435,17 +435,17 @@ Affects only overlay(hidden text) has a property `isearch-open-invisible'."
   :group 'auto-highlight-symbol)
 (defvar ahs-definition-face-unfocused 'ahs-definition-face-unfocused)
 
-(defface ahs-plugin-defalt-face
+(defface ahs-plugin-default-face
   '((t (:foreground "Black" :background "Orange1")))
   "Face used in `display' plugin (current)."
   :group 'auto-highlight-symbol)
-(defvar ahs-plugin-defalt-face 'ahs-plugin-defalt-face)
+(defvar ahs-plugin-default-face 'ahs-plugin-default-face)
 
-(defface ahs-plugin-defalt-face-unfocused
+(defface ahs-plugin-default-face-unfocused
   '((t (:foreground "Black" :background "Orange1")))
   "Face used in `display' plugin (unfocused)."
   :group 'auto-highlight-symbol)
-(defvar ahs-plugin-defalt-face-unfocused 'ahs-plugin-defalt-face-unfocused)
+(defvar ahs-plugin-default-face-unfocused 'ahs-plugin-default-face-unfocused)
 
 (defface ahs-warning-face
   '((t (:foreground "Red" :bold t)))
@@ -759,7 +759,7 @@ You can do these operations at One Key!
     (cond
      ((equal value 'abort) 'abort)           ; abort
      ((equal prop 'face)                     ; face
-      (if (facep value) value ahs-plugin-defalt-face))
+      (if (facep value) value ahs-plugin-default-face))
 
      ((and (functionp value)
            (equal prop 'major-mode)) value)  ; major-mode
@@ -838,7 +838,7 @@ You can do these operations at One Key!
     display
   '((name    . "display area")
     (lighter . "HS")
-    (face    . ahs-plugin-defalt-face)
+    (face    . ahs-plugin-default-face)
     (start   . window-start)
     (end     . window-end))
   "Display area")
@@ -1176,7 +1176,7 @@ You can do these operations at One Key!
 
     (overlay-put overlay 'ahs-symbol 'current)
     (overlay-put overlay 'priority 1000)
-    (overlay-put overlay 'face (if current ahs-plugin-defalt-face ahs-plugin-defalt-face-unfocused))
+    (overlay-put overlay 'face (if current ahs-plugin-default-face ahs-plugin-default-face-unfocused))
     (overlay-put overlay 'help-echo '(ahs-stat-string))
     (overlay-put overlay 'window (selected-window))
 
