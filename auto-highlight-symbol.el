@@ -957,7 +957,7 @@ You can do these operations at One Key!
 (defun ahs--do-hl ()
   "Do the highlighting."
   (ahs-unhighlight t)
-  (when (and auto-highlight-symbol-mode (not (use-region-p)))
+  (when (and auto-highlight-symbol-mode (not mark-active))
     (let ((hl (ahs-highlight-p)))
       (when hl (ahs-highlight (nth 0 hl) (nth 1 hl) (nth 2 hl))))))
 
@@ -1159,6 +1159,7 @@ You can do these operations at One Key!
   "Unhighlight"
   (when (or force
             (and (not (memq this-command ahs-unhighlight-allowed-commands))
+                 ;; Don't unhighlight if we are on the same symbol
                  (not (equal (ht-get ahs-window-map (selected-window)) (thing-at-point 'symbol)))))
     ;; Don't pass in force here!
     ;;
