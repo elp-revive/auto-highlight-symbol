@@ -937,7 +937,7 @@ You can do these operations at One Key!
 (defun ahs-start-timer ()
   "Start idle timer."
   (when auto-highlight-symbol-mode
-    (ahs-unhighlight t)
+    (ahs-unhighlight)
     (when (timerp ahs-idle-timer) (cancel-timer ahs-idle-timer))
     (setq ahs-idle-timer
           (run-with-idle-timer ahs-idle-interval nil #'ahs-idle-function))))
@@ -1140,7 +1140,7 @@ You can do these operations at One Key!
       ;;(msell-bench
       (ahs-search-symbol symbol search-range)
       (when ahs-need-fontify (ahs-fontify))
-      (ahs-unhighlight)
+      (ahs-unhighlight t)
       (ahs-light-up current)
       ;;)
       (when ahs-overlay-list
@@ -1157,7 +1157,7 @@ You can do these operations at One Key!
   (when (or force
             (and (not (memq this-command ahs-unhighlight-allowed-commands))
                  (not (equal (ht-get ahs-window-map (selected-window)) (thing-at-point 'symbol)))))
-    (ahs-remove-all-overlay force)))
+    (ahs-remove-all-overlay)))
 
 (defun ahs-highlight-current-symbol (current beg end)
   "Highlight current symbol."
@@ -1175,14 +1175,14 @@ You can do these operations at One Key!
 
     (setq ahs-current-overlay overlay)))
 
-(defun ahs-remove-all-overlay (&optional force)
+(defun ahs-remove-all-overlay ()
   "Remove all overlays."
   (dolist (ov (ahs-util-overlays-in 'ahs-symbol 'current))
-    (when (or force (eq (overlay-get ov 'window) (selected-window)))
+    (when (eq (overlay-get ov 'window) (selected-window))
       (delete-overlay ov)))
   ;; Make sure we only deletes the current window's overlay
   (dolist (ov (ahs-util-overlays-in 'ahs-symbol t))
-    (when (or force (eq (overlay-get ov 'window) (selected-window)))
+    (when (eq (overlay-get ov 'window) (selected-window))
       (delete-overlay ov)))
   (mapc 'ahs-open-necessary-overlay ahs-opened-overlay-list)
   (setq ahs-current-overlay     nil
