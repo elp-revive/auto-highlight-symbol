@@ -937,7 +937,7 @@ You can do these operations at One Key!
 (defun ahs-start-timer ()
   "Start idle timer."
   (when auto-highlight-symbol-mode
-    (ahs-unhighlight)
+    (ahs-unhighlight)  ; unhighlight it once here so we can see the result immediately
     (when (timerp ahs-idle-timer) (cancel-timer ahs-idle-timer))
     (setq ahs-idle-timer
           (run-with-timer
@@ -956,7 +956,8 @@ You can do these operations at One Key!
 
 (defun ahs--do-hl ()
   "Do the highlighting."
-  (when auto-highlight-symbol-mode
+  (ahs-unhighlight t)
+  (when (and auto-highlight-symbol-mode (not (use-region-p)))
     (let ((hl (ahs-highlight-p)))
       (when hl (ahs-highlight (nth 0 hl) (nth 1 hl) (nth 2 hl))))))
 
@@ -1143,7 +1144,6 @@ You can do these operations at One Key!
       ;;(msell-bench
       (ahs-search-symbol symbol search-range)
       (when ahs-need-fontify (ahs-fontify))
-      (ahs-unhighlight t)
       (ahs-light-up current)
       ;;)
       (when ahs-overlay-list
@@ -1160,7 +1160,14 @@ You can do these operations at One Key!
   (when (or force
             (and (not (memq this-command ahs-unhighlight-allowed-commands))
                  (not (equal (ht-get ahs-window-map (selected-window)) (thing-at-point 'symbol)))))
+    ;; Don't pass in force here!
+    ;;
+    ;; The default behaviour should only delete it's current window
     (ahs-remove-all-overlay)))
+
+(defun ahs-unhighlight-all (&optional force)
+  "Unhighlight all windows."
+  (dolist (buf (buffer-list)) (ahs-remove-all-overlay force)))
 
 (defun ahs-highlight-current-symbol (current beg end)
   "Highlight current symbol."
@@ -1178,14 +1185,14 @@ You can do these operations at One Key!
 
     (setq ahs-current-overlay overlay)))
 
-(defun ahs-remove-all-overlay ()
+(defun ahs-remove-all-overlay (&optional force)
   "Remove all overlays."
   (dolist (ov (ahs-util-overlays-in 'ahs-symbol 'current))
-    (when (eq (overlay-get ov 'window) (selected-window))
+    (when (or force (eq (overlay-get ov 'window) (selected-window)))
       (delete-overlay ov)))
   ;; Make sure we only deletes the current window's overlay
   (dolist (ov (ahs-util-overlays-in 'ahs-symbol t))
-    (when (eq (overlay-get ov 'window) (selected-window))
+    (when (or force (eq (overlay-get ov 'window) (selected-window)))
       (delete-overlay ov)))
   (mapc 'ahs-open-necessary-overlay ahs-opened-overlay-list)
   (setq ahs-current-overlay     nil
@@ -1532,7 +1539,7 @@ You can do these operations at One Key!
   "Remove all overlays and exit edit mode."
   (if ahs-edit-mode-enable
       (ahs-edit-mode-off (not verbose) nil)
-    (when ahs-highlighted (ahs-unhighlight t))
+    (ahs-unhighlight-all t)
     (ht-clear ahs-window-map)
     (remove-hook 'post-command-hook #'ahs-start-timer t)))
 
