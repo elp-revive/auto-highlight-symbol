@@ -1690,8 +1690,9 @@ That's all."
 
 (eval-and-compile
   (if (< emacs-major-version 27)
-      (progn (add-hook 'focus-in-hook #'ahs-focus-in)
-             (add-hook 'focus-out-hook #'ahs-focus-out))
+      (with-no-warnings
+        (add-hook 'focus-in-hook #'ahs-focus-in)
+        (add-hook 'focus-out-hook #'ahs-focus-out))
     (add-function :after after-focus-change-function
                   (lambda (&rest _)
                     (if (frame-focus-state) (ahs-focus-in) (ahs-focus-out))))))
