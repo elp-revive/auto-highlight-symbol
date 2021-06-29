@@ -940,7 +940,7 @@ You can do these operations at One Key!
     (ahs-unhighlight)
     (when (timerp ahs-idle-timer) (cancel-timer ahs-idle-timer))
     (setq ahs-idle-timer
-          (run-with-idle-timer
+          (run-with-timer
            ;; if switch window, immediately change focus/unfocus
            (if (eq ahs-selected-window (selected-window)) 0
              ahs-idle-interval)
