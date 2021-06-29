@@ -942,8 +942,7 @@ You can do these operations at One Key!
     (setq ahs-idle-timer
           (run-with-timer
            ;; if switch window, immediately change focus/unfocus
-           (if (eq ahs-selected-window (selected-window)) 0
-             ahs-idle-interval)
+           (if (eq ahs-selected-window (selected-window)) ahs-idle-interval 0)
            nil #'ahs-idle-function))))
 
 ;;
