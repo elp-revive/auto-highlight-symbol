@@ -187,6 +187,7 @@
 ;;
 ;; v1.61
 ;;   prevent unhighlight even window isn't the selected one
+;;   add disabled commands/minor-modes/flags
 ;;
 ;; v1.60
 ;;   allow mouse movement and still be highlighted
