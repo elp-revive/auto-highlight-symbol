@@ -1626,6 +1626,12 @@ That's all."
   (interactive)
   (ahs-idle-function))
 
+(defun ahs-unfocus-all ()
+  "Unfocus all windows."
+  (interactive)
+  (setq ahs-selected-window nil)
+  (walk-windows (lambda (win) (with-selected-window win (ahs--do-hl)))))
+
 (defun ahs-goto-web ()
   "Go to official? web site."
   (interactive)
@@ -1671,20 +1677,18 @@ That's all."
 ;; (@* "Unfocus" )
 ;;
 
-(defun ahs-focus-out (&rest _)
-  "Focus out hook."
-  (setq ahs-selected-window nil)
-  (walk-windows (lambda (win) (with-selected-window win (ahs--do-hl)))))
-
 (defun ahs-focus-in (&rest _)
   "Focus in hook."
-  (setq ahs-selected-window (selected-window))
-  (walk-windows (lambda (win) (with-selected-window win (ahs--do-hl)))))
+  (ahs-highlight-now))
+
+(defun ahs-focus-out (&rest _)
+  "Focus out hook."
+  (ahs-unfocus-all))
 
 (eval-and-compile
   (if (< emacs-major-version 27)
-      (progn (add-hook 'focus-out-hook #'ahs-focus-out)
-             (add-hook 'focus-in-hook #'ahs-focus-in))
+      (progn (add-hook 'focus-in-hook #'ahs-focus-in)
+             (add-hook 'focus-out-hook #'ahs-focus-out))
     (add-function :after after-focus-change-function
                   (lambda (&rest _)
                     (if (frame-focus-state) (ahs-focus-in) (ahs-focus-out))))))
