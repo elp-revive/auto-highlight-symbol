@@ -626,7 +626,7 @@ You can do these operations at One Key!
   '(undo redo)
   "Comamnds that are inhibit for modification.")
 
-(defvar ahs-unhighlight-allowed-commands
+(defcustom ahs-unhighlight-allowed-commands
   '(universal-argument
     universal-argument-other-key
     ahs-back-to-start
@@ -637,7 +637,27 @@ You can do these operations at One Key!
     ahs-forward
     ahs-forward-definition
     ignore)
-  "Commands allow to be highlight.")
+  "Commands allow to be highlight."
+  :group 'auto-highlight-symbol
+  :type 'list)
+
+(defcustom ahs-disabled-commands
+  '()
+  "List of disabled commands."
+  :group 'auto-highlight-symbol
+  :type 'list)
+
+(defcustom ahs-disabled-minor-modes
+  '(iedit-mode)
+  "List of disabled minor modes."
+  :group 'auto-highlight-symbol
+  :type 'list)
+
+(defcustom ahs-disabled-flags
+  '(mark-active)
+  "List of disabled flags."
+  :group 'auto-highlight-symbol
+  :type 'list)
 
 (defvar ahs-range-plugin-list nil
   "List of installed plugin.")
@@ -962,11 +982,25 @@ You can do these operations at One Key!
 (defun ahs--do-hl ()
   "Do the highlighting."
   (ahs-unhighlight t)
-  (when (and auto-highlight-symbol-mode (not mark-active))
+  (when (and auto-highlight-symbol-mode
+             (not (ahs--disabled-minor-modes-p))
+             (not (memq this-command ahs-disabled-commands))
+             (not (cl-some (lambda (flag) (symbol-value flag)) ahs-disabled-flags)))
     (let ((hl (ahs-highlight-p)))
       (when hl (ahs-highlight (nth 0 hl) (nth 1 hl) (nth 2 hl))))))
 
+(defun ahs--disabled-minor-modes-p ()
+  "Return non-nil, if there is at least one minor mode active."
+  (let ((index 0) ret m-mode)
+    (while (and (not ret)
+                (< index (length ahs-disabled-minor-modes)))
+      (setq m-mode (nth index ahs-disabled-minor-modes)
+            ret (ignore-errors (symbol-value m-mode)))
+      (setq index (1+ index)))
+    ret))
+
 (defmacro ahs-add-overlay-face (pos face)
+  "Not documented, POS, FACE."
   `(if ahs-face-check-include-overlay
        (append (ahs-get-overlay-face ,pos)
                (if (listp ,face)
