@@ -407,6 +407,11 @@ Affects only overlay(hidden text) has a property `isearch-open-invisible'."
   :group 'auto-highlight-symbol
   :type 'float)
 
+(defcustom ahs-overlay-priority 1000
+  "The priority of the overlay used to indicate matches."
+  :group 'auto-highlight-symbol
+  :type 'integer)
+
 ;;
 ;; (@* "Face" )
 ;;
@@ -1175,7 +1180,7 @@ You can do these operations at One Key!
   (let* ((overlay (make-overlay beg end nil nil t)))
 
     (overlay-put overlay 'ahs-symbol 'current)
-    (overlay-put overlay 'priority 1000)
+    (overlay-put overlay 'priority ahs-overlay-priority)
     (overlay-put overlay 'face (if current ahs-plugin-default-face ahs-plugin-default-face-unfocused))
     (overlay-put overlay 'help-echo '(ahs-stat-string))
     (overlay-put overlay 'window (selected-window))
