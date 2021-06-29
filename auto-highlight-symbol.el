@@ -1676,11 +1676,18 @@ That's all."
   (setq ahs-selected-window nil)
   (walk-windows (lambda (win) (with-selected-window win (ahs--do-hl)))))
 
+(defun ahs-focus-in (&rest _)
+  "Focus in hook."
+  (setq ahs-selected-window (selected-window))
+  (walk-windows (lambda (win) (with-selected-window win (ahs--do-hl)))))
+
 (eval-and-compile
   (if (< emacs-major-version 27)
-      (add-hook 'focus-out-hook #'ahs-focus-out)
+      (progn (add-hook 'focus-out-hook #'ahs-focus-out)
+             (add-hook 'focus-in-hook #'ahs-focus-in))
     (add-function :after after-focus-change-function
-                  (lambda (&rest _) (unless (frame-focus-state) (ahs-focus-out))))))
+                  (lambda (&rest _)
+                    (if (frame-focus-state) (ahs-focus-in) (ahs-focus-out))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 
