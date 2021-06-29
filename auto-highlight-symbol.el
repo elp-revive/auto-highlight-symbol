@@ -1167,7 +1167,7 @@ You can do these operations at One Key!
 
 (defun ahs-unhighlight-all (&optional force)
   "Unhighlight all windows."
-  (dolist (buf (buffer-list)) (ahs-remove-all-overlay force)))
+  (ahs-remove-all-overlay force))
 
 (defun ahs-highlight-current-symbol (current beg end)
   "Highlight current symbol."
