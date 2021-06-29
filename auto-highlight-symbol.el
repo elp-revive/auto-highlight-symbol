@@ -1528,7 +1528,7 @@ You can do these operations at One Key!
   (ahs-set-lighter)
   (add-hook 'post-command-hook #'ahs-start-timer nil t))
 
-(defun ahsw-clear (&optional verbose)
+(defun ahs-clear (&optional verbose)
   "Remove all overlays and exit edit mode."
   (if ahs-edit-mode-enable
       (ahs-edit-mode-off (not verbose) nil)
