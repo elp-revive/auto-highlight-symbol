@@ -10,7 +10,7 @@
 ;; Version: 1.60
 ;; Keywords: highlight face match convenience
 ;; URL: http://github.com/jcs-elpa/auto-highlight-symbol
-;; Compatibility: GNU Emacs 22.3 23.x 24.x later
+;; Package-Requires: ((emacs "24.4") (ht "2.3"))
 ;;
 ;; This file is NOT part of GNU Emacs.
 
@@ -185,6 +185,9 @@
 
 ;;; (@* "Changelog" )
 ;;
+;; v1.61
+;;   prevent unhighlight even window isn't the selected one
+;;
 ;; v1.60
 ;;   allow mouse movement and still be highlighted
 ;;   don't remove highlight if symbol are the same as last one
@@ -264,6 +267,7 @@
   ;; Suppress bytecompiler error warning
   (require 'easy-mmode)
   (require 'cl-lib)
+  (require 'ht)
   (defvar dropdown-list-overlays nil))
 
 (eval-and-compile
@@ -329,7 +333,7 @@
     squirrel-mode
     text-mode
     tcl-mode
-    visual-basic-mode )
+    visual-basic-mode)
   "Major modes function `auto-highlight-symbol-mode' can run on."
   :group 'auto-highlight-symbol
   :type '(repeat symbol))
@@ -395,19 +399,13 @@ Affects only overlay(hidden text) has a property `isearch-open-invisible'."
   :group 'auto-highlight-symbol
   :type 'hook)
 
-(defvar ahs-idle-timer nil
+(defvar-local ahs-idle-timer nil
   "Timer used to highlighting symbol whenever Emacs is idle.")
 
 (defcustom ahs-idle-interval 1.0
   "Number of seconds to wait before highlighting symbol."
   :group 'auto-highlight-symbol
-  :type 'float
-  :set (lambda (symbol value)
-         (set-default symbol value)
-         (when (timerp ahs-idle-timer)
-           (cancel-timer ahs-idle-timer)
-           (setq ahs-idle-timer nil)
-           (ahs-start-timer))))
+  :type 'float)
 
 ;;
 ;; (@* "Face" )
@@ -415,27 +413,45 @@ Affects only overlay(hidden text) has a property `isearch-open-invisible'."
 
 (defface ahs-face
   '((t (:foreground "GhostWhite" :background "LightYellow4")))
-  "Highlight the symbol using this face."
+  "Highlight the symbol using this face (current)."
   :group 'auto-highlight-symbol)
 (defvar ahs-face 'ahs-face)
 
 (defface ahs-definition-face
   '((t (:foreground "moccasin" :background "CadetBlue")))
-  "Highlight the symbol definition using this face."
+  "Highlight the symbol definition using this face (current)."
   :group 'auto-highlight-symbol)
 (defvar ahs-definition-face 'ahs-definition-face)
+
+(defface ahs-face-unfocused
+  '((t (:foreground "GhostWhite" :background "LightYellow4")))
+  "Highlight the symbol using this face (unfocused)."
+  :group 'auto-highlight-symbol)
+(defvar ahs-face-unfocused 'ahs-face-unfocused)
+
+(defface ahs-definition-face-unfocused
+  '((t (:foreground "moccasin" :background "CadetBlue")))
+  "Highlight the symbol definition using this face (unfocused)."
+  :group 'auto-highlight-symbol)
+(defvar ahs-definition-face-unfocused 'ahs-definition-face-unfocused)
+
+(defface ahs-plugin-defalt-face
+  '((t (:foreground "Black" :background "Orange1")))
+  "Face used in `display' plugin (current)."
+  :group 'auto-highlight-symbol)
+(defvar ahs-plugin-defalt-face 'ahs-plugin-defalt-face)
+
+(defface ahs-plugin-defalt-face-unfocused
+  '((t (:foreground "Black" :background "Orange1")))
+  "Face used in `display' plugin (unfocused)."
+  :group 'auto-highlight-symbol)
+(defvar ahs-plugin-defalt-face-unfocused 'ahs-plugin-defalt-face-unfocused)
 
 (defface ahs-warning-face
   '((t (:foreground "Red" :bold t)))
   "Face for warning message."
   :group 'auto-highlight-symbol)
 (defvar ahs-warning-face 'ahs-warning-face)
-
-(defface ahs-plugin-defalt-face
-  '((t (:foreground "Black" :background "Orange1")))
-  "Face used in `display' plugin."
-  :group 'auto-highlight-symbol)
-(defvar ahs-plugin-defalt-face 'ahs-plugin-defalt-face)
 
 (defface ahs-plugin-whole-buffer-face
   '((t (:foreground "Black" :background "GreenYellow")))
@@ -625,31 +641,20 @@ You can do these operations at One Key!
 (defvar ahs-need-fontify nil)
 
 ;; Buffer local variable
-(defvar ahs-current-overlay nil)
-(defvar ahs-current-range nil)
-(defvar ahs-edit-mode-enable nil)
-(defvar ahs-highlighted nil)
-(defvar ahs-inhibit-modification nil)
-(defvar ahs-mode-line nil)
-(defvar ahs-onekey-range-store nil)
-(defvar ahs-opened-overlay-list nil)
-(defvar ahs-overlay-list nil)
-(defvar ahs-start-modification nil)
-(defvar ahs-start-point nil)
-(defvar ahs-last-symbol nil)
+(defvar-local ahs-current-overlay nil)
+(defvar-local ahs-current-range nil)
+(defvar-local ahs-edit-mode-enable nil)
+(defvar-local ahs-highlighted nil)
+(defvar-local ahs-inhibit-modification nil)
+(defvar-local ahs-mode-line nil)
+(defvar-local ahs-onekey-range-store nil)
+(defvar-local ahs-opened-overlay-list nil)
+(defvar-local ahs-overlay-list nil)
+(defvar-local ahs-start-modification nil)
+(defvar-local ahs-start-point nil)
 
-(make-variable-buffer-local 'ahs-current-overlay)
-(make-variable-buffer-local 'ahs-current-range)
-(make-variable-buffer-local 'ahs-edit-mode-enable)
-(make-variable-buffer-local 'ahs-highlighted)
-(make-variable-buffer-local 'ahs-inhibit-modification)
-(make-variable-buffer-local 'ahs-mode-line)
-(make-variable-buffer-local 'ahs-onekey-range-store)
-(make-variable-buffer-local 'ahs-opened-overlay-list)
-(make-variable-buffer-local 'ahs-overlay-list)
-(make-variable-buffer-local 'ahs-start-modification)
-(make-variable-buffer-local 'ahs-start-point)
-(make-variable-buffer-local 'ahs-last-symbol)
+(defvar ahs-window-map (ht-create))
+(defvar ahs-selected-window nil)
 
 ;;
 ;; (@* "Logging" )
@@ -741,7 +746,7 @@ You can do these operations at One Key!
         (ahs-log-echo-area-only))
     (ahs-log 'plugin-error-log1)
     (ahs-log 'plugin-error-log2
-             err (ahs-get-plugin-prop 'name range) prop) ;; infinite loop? if 'name is badly function
+             err (ahs-get-plugin-prop 'name range) prop)  ;; infinite loop? if 'name is badly function
     (ahs-log 'plugin-error-log3)
 
     (ahs-change-range-internal ahs-default-range)
@@ -752,15 +757,13 @@ You can do these operations at One Key!
   "Return value of the `PROP' property of the `RANGE' plugin."
   (let ((value (cdr (assoc prop (symbol-value range)))))
     (cond
-     ((equal value 'abort) 'abort)          ;; abort
-     ((equal prop 'face)                    ;; face
-      (if (facep value)
-          value
-        ahs-plugin-defalt-face))
+     ((equal value 'abort) 'abort)           ; abort
+     ((equal prop 'face)                     ; face
+      (if (facep value) value ahs-plugin-defalt-face))
 
      ((and (functionp value)
-           (equal prop 'major-mode)) value) ;; major-mode
-     ((functionp value)                     ;; function
+           (equal prop 'major-mode)) value)  ; major-mode
+     ((functionp value)                      ; function
       (condition-case err
           (if arg
               (funcall value arg)
@@ -769,12 +772,12 @@ You can do these operations at One Key!
                (ahs-plugin-error-message err prop range)
                'abort)))
 
-     ((null value) 'none)                   ;; property not found
+     ((null value) 'none)                    ; property not found
 
-     ((symbolp value)                       ;; symbol
+     ((symbolp value)                        ; symbol
       (ignore-errors
         (symbol-value value)))
-     (t value))))                           ;; others
+     (t value))))                            ; others
 
 (defun ahs-current-plugin-prop (prop &optional arg)
   "Return value of the `PROP' property of the current plugin."
@@ -883,8 +886,7 @@ You can do these operations at One Key!
 (defun ahs-plugin-ahs-bod ()
   "Another narrow-to-defun."
   (condition-case err
-      (let ((opoint (point))
-            beg end)
+      (let ((opoint (point)) beg end)
         ;; Point in function
         (beginning-of-defun)
         (setq beg (point))
@@ -934,16 +936,15 @@ You can do these operations at One Key!
 
 (defun ahs-start-timer ()
   "Start idle timer."
-  (unless ahs-idle-timer
+  (when auto-highlight-symbol-mode
+    (ahs-unhighlight)
+    (when (timerp ahs-idle-timer) (cancel-timer ahs-idle-timer))
     (setq ahs-idle-timer
-          (run-with-idle-timer ahs-idle-interval t #'ahs-idle-function))))
-
-(defun ahs-restart-timer ()
-  "Restart idle timer."
-  (when (timerp ahs-idle-timer)
-    (cancel-timer ahs-idle-timer)
-    (setq ahs-idle-timer nil)
-    (ahs-start-timer)))
+          (run-with-timer
+           ;; if switch window, immediately change focus/unfocus
+           (if (eq ahs-selected-window (selected-window)) 0
+             ahs-idle-interval)
+           nil #'ahs-idle-function))))
 
 ;;
 ;; (@* "Idle" )
@@ -951,17 +952,22 @@ You can do these operations at One Key!
 
 (defun ahs-idle-function ()
   "Idle function. Called by `ahs-idle-timer'."
-  (when (and auto-highlight-symbol-mode (not ahs-highlighted))
+  (setq ahs-selected-window (selected-window))
+  (walk-windows (lambda (win) (with-selected-window win (ahs--do-hl)))))
+
+(defun ahs--do-hl ()
+  "Do the highlighting."
+  (when auto-highlight-symbol-mode
     (let ((hl (ahs-highlight-p)))
-      (when hl
-        (ahs-highlight (nth 0 hl) (nth 1 hl) (nth 2 hl))))))
+      (when hl (ahs-highlight (nth 0 hl) (nth 1 hl) (nth 2 hl))))))
 
 (defmacro ahs-add-overlay-face (pos face)
   `(if ahs-face-check-include-overlay
        (append (ahs-get-overlay-face ,pos)
                (if (listp ,face)
                    ,face
-                 (list ,face))) ,face))
+                 (list ,face)))
+     ,face))
 
 (defun ahs-highlight-p ()
   "Ruturn Non-nil if symbols can be highlighted."
@@ -1057,7 +1063,8 @@ You can do these operations at One Key!
             (setq ahs-need-fontify t))
           (push (list symbol-beg
                       symbol-end
-                      face fontified) ahs-search-work))))))
+                      face fontified)
+                ahs-search-work))))))
 
 (defun ahs-fontify ()
   "Fontify symbols for strict check."
@@ -1105,7 +1112,7 @@ You can do these operations at One Key!
            do (when (and beg end)
                 (jit-lock-fontify-now beg end))))
 
-(defun ahs-light-up ()
+(defun ahs-light-up (current)
   "Light up symbols."
   (cl-loop for symbol in ahs-search-work
 
@@ -1118,50 +1125,53 @@ You can do these operations at One Key!
            unless (ahs-face-p face 'ahs-inhibit-face-list)
            do (let ((overlay (make-overlay beg end nil nil t)))
                 (overlay-put overlay 'ahs-symbol t)
+                (overlay-put overlay 'window (selected-window))
                 (overlay-put overlay 'face
                              (if (ahs-face-p face 'ahs-definition-face-list)
-                                 ahs-definition-face
-                               ahs-face))
+                                 (if current ahs-definition-face
+                                   ahs-definition-face-unfocused)
+                               (if current ahs-face
+                                 ahs-face-unfocused)))
                 (push overlay ahs-overlay-list))))
 
 (defun ahs-highlight (symbol beg end)
   "Highlight"
   (setq ahs-search-work  nil
         ahs-need-fontify nil)
-  (let ((search-range (ahs-prepare-highlight symbol)))
+  (let ((search-range (ahs-prepare-highlight symbol))
+        (current (eq (selected-window) ahs-selected-window)))
     (when (consp search-range)
       ;;(msell-bench
       (ahs-search-symbol symbol search-range)
-      (when ahs-need-fontify
-        (ahs-fontify))
-      (ahs-light-up)
+      (when ahs-need-fontify (ahs-fontify))
+      (ahs-unhighlight t)
+      (ahs-light-up current)
       ;;)
       (when ahs-overlay-list
-        (ahs-highlight-current-symbol beg end)
+        (ahs-highlight-current-symbol current beg end)
         (setq ahs-highlighted  t
               ahs-start-point  beg
               ahs-search-work  nil
-              ahs-need-fontify nil
-              ahs-last-symbol symbol)
-        (add-hook 'post-command-hook #'ahs-unhighlight nil t)
+              ahs-need-fontify nil)
+        (ht-set ahs-window-map (selected-window) symbol)
         t))))
 
 (defun ahs-unhighlight (&optional force)
   "Unhighlight"
   (when (or force
             (and (not (memq this-command ahs-unhighlight-allowed-commands))
-                 (not (equal ahs-last-symbol (thing-at-point 'symbol)))))
-    (ahs-remove-all-overlay)
-    (remove-hook 'post-command-hook #'ahs-unhighlight t)))
+                 (not (equal (ht-get ahs-window-map (selected-window)) (thing-at-point 'symbol)))))
+    (ahs-remove-all-overlay)))
 
-(defun ahs-highlight-current-symbol (beg end)
+(defun ahs-highlight-current-symbol (current beg end)
   "Highlight current symbol."
-  (let* ((overlay  (make-overlay beg end nil nil t)))
+  (let* ((overlay (make-overlay beg end nil nil t)))
 
     (overlay-put overlay 'ahs-symbol 'current)
     (overlay-put overlay 'priority 1000)
-    (overlay-put overlay 'face (ahs-current-plugin-prop 'face))
+    (overlay-put overlay 'face (if current ahs-plugin-defalt-face ahs-plugin-defalt-face-unfocused))
     (overlay-put overlay 'help-echo '(ahs-stat-string))
+    (overlay-put overlay 'window (selected-window))
 
     (overlay-put overlay 'modification-hooks    '(ahs-modification-hook))
     (overlay-put overlay 'insert-in-front-hooks '(ahs-modification-hook))
@@ -1171,8 +1181,13 @@ You can do these operations at One Key!
 
 (defun ahs-remove-all-overlay ()
   "Remove all overlays."
-  (delete-overlay ahs-current-overlay)
-  (mapc 'delete-overlay ahs-overlay-list)
+  (dolist (ov (ahs-util-overlays-in 'ahs-symbol 'current))
+    (when (eq (overlay-get ov 'window) (selected-window))
+      (delete-overlay ov)))
+  ;; Make sure we only deletes the current window's overlay
+  (dolist (ov (ahs-util-overlays-in 'ahs-symbol t))
+    (when (eq (overlay-get ov 'window) (selected-window))
+      (delete-overlay ov)))
   (mapc 'ahs-open-necessary-overlay ahs-opened-overlay-list)
   (setq ahs-current-overlay     nil
         ahs-highlighted         nil
@@ -1425,7 +1440,7 @@ You can do these operations at One Key!
   (overlay-put overlay to (overlay-get overlay from))
   (overlay-put overlay from nil))
 
-;; No doc xD
+;; These are use for navigation
 (defun ahs-forward-p        (x) (< (overlay-start ahs-current-overlay) (overlay-start x)))
 (defun ahs-backward-p       (x) (> (overlay-start ahs-current-overlay) (overlay-start x)))
 (defun ahs-definition-p     (x) (eq (overlay-get x 'face) 'ahs-definition-face))
@@ -1512,20 +1527,30 @@ You can do these operations at One Key!
   (unless ahs-current-range
     (ahs-change-range-internal ahs-default-range))
   (ahs-set-lighter)
-  (ahs-start-timer))
+  (add-hook 'post-command-hook #'ahs-start-timer nil t))
 
-(defun ahs-clear (&optional verbose)
+(defun ahsw-clear (&optional verbose)
   "Remove all overlays and exit edit mode."
   (if ahs-edit-mode-enable
       (ahs-edit-mode-off (not verbose) nil)
-    (when ahs-highlighted
-      (ahs-unhighlight t))))
+    (when ahs-highlighted (ahs-unhighlight t))
+    (ht-clear ahs-window-map)
+    (remove-hook 'post-command-hook #'ahs-start-timer t)))
 
 (defun ahs-mode-maybe ()
   "Fire up `auto-highlight-symbol-mode' if major-mode in ahs-modes."
   (if (and (not (minibufferp (current-buffer)))
            (memq major-mode ahs-modes))
       (auto-highlight-symbol-mode t)))
+
+(defun ahs-util-overlays-in (prop name &optional beg end)
+  "Return overlays with PROP of NAME, from region BEG to END."
+  (unless beg (setq beg (point-min))) (unless end (setq end (point-max)))
+  (let ((lst '()) (ovs (overlays-in beg end)))
+    (dolist (ov ovs)
+      (when (eq name (overlay-get ov prop))
+        (push ov lst)))
+    lst))
 
 ;;
 ;; (@* "Interactive" )
@@ -1564,8 +1589,7 @@ Limitation:
   (interactive)
   (ahs-clear (not nomsg))
 
-  (when (if range
-            (ahs-valid-plugin-p range)
+  (when (if range (ahs-valid-plugin-p range)
           (setq range (ahs-runnable-plugins t)))
     (ahs-change-range-internal range)
     (let ((ahs-suppress-log nomsg))
@@ -1579,10 +1603,8 @@ Limitation:
 (defun ahs-set-idle-interval (secs)
   "Set wait until highlighting symbol when emacs is idle."
   (interactive "nSeconds to idle, before highlighting symbol: ")
-  (when (and (numberp secs)
-             (not (equal secs 0)))
-    (setq ahs-idle-interval secs)
-    (ahs-restart-timer)))
+  (when (and (numberp secs) (not (equal secs 0)))
+    (setq ahs-idle-interval secs)))
 
 (defun ahs-display-stat ()
   "Display current status.
@@ -1608,6 +1630,12 @@ That's all."
   (interactive)
   (ahs-idle-function))
 
+(defun ahs-unfocus-all ()
+  "Unfocus all windows."
+  (interactive)
+  (setq ahs-selected-window nil)
+  (walk-windows (lambda (win) (with-selected-window win (ahs--do-hl)))))
+
 (defun ahs-goto-web ()
   "Go to official? web site."
   (interactive)
@@ -1620,13 +1648,10 @@ That's all."
 (defun ahs-edit-mode (arg &optional temporary)
   "Turn on edit mode. With a prefix argument, current plugin change to `whole buffer' temporary."
   (interactive
-   (if ahs-edit-mode-enable
-       (list nil)
+   (if ahs-edit-mode-enable (list nil)
      (list t current-prefix-arg)))
 
-  (when (and arg
-             (not temporary))
-    (ahs-idle-function))
+  (when (and arg (not temporary)) (ahs-idle-function))
 
   (cond
    ((and arg temporary)
@@ -1650,16 +1675,27 @@ That's all."
   "Toggle Auto Highlight Symbol Mode"
   :group 'auto-highlight-symbol
   :lighter ahs-mode-line
-  (if auto-highlight-symbol-mode
-      (ahs-init)
-    (ahs-clear)))
+  (if auto-highlight-symbol-mode (ahs-init) (ahs-clear)))
 
 ;;
-;; (@* "Revert" )
+;; (@* "Unfocus" )
 ;;
 
-;; Remove all overlays and exit edit mode before revert-buffer
-(add-hook 'before-revert-hook #'ahs-clear)
+(defun ahs-focus-in (&rest _)
+  "Focus in hook."
+  (ahs-highlight-now))
+
+(defun ahs-focus-out (&rest _)
+  "Focus out hook."
+  (ahs-unfocus-all))
+
+(eval-and-compile
+  (if (< emacs-major-version 27)
+      (progn (add-hook 'focus-in-hook #'ahs-focus-in)
+             (add-hook 'focus-out-hook #'ahs-focus-out))
+    (add-function :after after-focus-change-function
+                  (lambda (&rest _)
+                    (if (frame-focus-state) (ahs-focus-in) (ahs-focus-out))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 
