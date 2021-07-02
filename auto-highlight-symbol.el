@@ -670,7 +670,6 @@ You can do these operations at One Key!
 (defvar-local ahs-current-overlay nil)
 (defvar-local ahs-current-range nil)
 (defvar-local ahs-edit-mode-enable nil)
-(defvar-local ahs-highlighted nil)
 (defvar-local ahs-inhibit-modification nil)
 (defvar-local ahs-mode-line nil)
 (defvar-local ahs-onekey-range-store nil)
@@ -1178,8 +1177,7 @@ You can do these operations at One Key!
       ;;)
       (when ahs-overlay-list
         (ahs-highlight-current-symbol current beg end)
-        (setq ahs-highlighted  t
-              ahs-start-point  beg
+        (setq ahs-start-point  beg
               ahs-search-work  nil
               ahs-need-fontify nil)
         (ht-set ahs-window-map (selected-window) symbol)
@@ -1227,7 +1225,6 @@ You can do these operations at One Key!
       (delete-overlay ov)))
   (mapc 'ahs-open-necessary-overlay ahs-opened-overlay-list)
   (setq ahs-current-overlay     nil
-        ahs-highlighted         nil
         ahs-opened-overlay-list nil
         ahs-overlay-list        nil
         ahs-start-point         nil))
@@ -1384,45 +1381,44 @@ You can do these operations at One Key!
 
 (defun ahs-select (pred &optional reverse onlydef)
   "Select highlighted symbol."
-  (when ahs-highlighted
-    (let* ((next (cl-loop with start = nil
-                          for overlay in (if reverse
-                                             (reverse ahs-overlay-list)
-                                           ahs-overlay-list)
+  (let* ((next (cl-loop with start = nil
+                        for overlay in (if reverse
+                                           (reverse ahs-overlay-list)
+                                         ahs-overlay-list)
 
-                          for skip = (cl-loop for hidden in (overlays-at (overlay-start overlay))
-                                              when (overlay-get hidden 'invisible)
-                                              when (or (equal ahs-select-invisible 'skip)
-                                                       (not (overlay-get hidden 'isearch-open-invisible)))
-                                              return hidden)
+                        for skip = (cl-loop for hidden in (overlays-at (overlay-start overlay))
+                                            when (overlay-get hidden 'invisible)
+                                            when (or (equal ahs-select-invisible 'skip)
+                                                     (not (overlay-get hidden 'isearch-open-invisible)))
+                                            return hidden)
 
-                          for selectable = (and (not skip)
-                                                (or (not onlydef)
-                                                    (ahs-definition-p overlay)))
+                        for selectable = (and (not skip)
+                                              (or (not onlydef)
+                                                  (ahs-definition-p overlay)))
 
-                          when selectable
-                          unless start do (setq start overlay)
+                        when selectable
+                        unless start do (setq start overlay)
 
-                          when selectable
-                          when (funcall pred overlay) return overlay
+                        when selectable
+                        when (funcall pred overlay) return overlay
 
-                          finally
-                          return (or start
-                                     ahs-current-overlay)))
+                        finally
+                        return (or start
+                                   ahs-current-overlay)))
 
-           (beg (overlay-start next))
-           (end (overlay-end next)))
+         (beg (overlay-start next))
+         (end (overlay-end next)))
 
-      (dolist (overlay
-               (unless (equal ahs-select-invisible 'skip)
-                 (ahs-get-openable-overlays next)))
-        (ahs-open-invisible-overlay-temporary overlay))
+    (dolist (overlay
+             (unless (equal ahs-select-invisible 'skip)
+               (ahs-get-openable-overlays next)))
+      (ahs-open-invisible-overlay-temporary overlay))
 
-      (goto-char (+ beg (- (point) (overlay-start ahs-current-overlay))))
-      (move-overlay ahs-current-overlay beg end))
+    (goto-char (+ beg (- (point) (overlay-start ahs-current-overlay))))
+    (move-overlay ahs-current-overlay beg end))
 
-    (when (equal ahs-select-invisible 'immediate)
-      (ahs-close-unnecessary-overlays))))
+  (when (equal ahs-select-invisible 'immediate)
+    (ahs-close-unnecessary-overlays)))
 
 (defun ahs-get-openable-overlays (overlay)
   "Return list of openable overlays."
@@ -1695,8 +1691,6 @@ That's all."
     (ahs-onekey-edit-function 'whole-buffer nil))
 
    ((not (ahs-edit-mode-condition-p)) nil)
-   ((not ahs-highlighted)
-    (ahs-log 'no-symbol-at-point))
    (arg
     (ahs-edit-mode-on))
    ((not arg)
