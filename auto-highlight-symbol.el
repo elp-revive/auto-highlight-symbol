@@ -448,6 +448,8 @@ Affects only overlay(hidden text) has a property `isearch-open-invisible'."
   :group 'auto-highlight-symbol)
 (defvar ahs-plugin-default-face 'ahs-plugin-default-face)
 
+(define-obsolete-face-alias 'ahs-plugin-defalt-face 'ahs-plugin-default-face "1.60")
+
 (defface ahs-plugin-default-face-unfocused
   '((t (:foreground "Black" :background "Orange1")))
   "Face used in `display' plugin (unfocused)."
