@@ -1723,14 +1723,13 @@ That's all."
   "Focus out hook."
   (ahs-unfocus-all))
 
-(eval-and-compile
-  (if (< emacs-major-version 27)
-      (with-no-warnings
-        (add-hook 'focus-in-hook #'ahs-focus-in)
-        (add-hook 'focus-out-hook #'ahs-focus-out))
-    (add-function :after after-focus-change-function
-                  (lambda (&rest _)
-                    (if (frame-focus-state) (ahs-focus-in) (ahs-focus-out))))))
+(if (< emacs-major-version 27)
+    (with-no-warnings
+      (add-hook 'focus-in-hook #'ahs-focus-in)
+      (add-hook 'focus-out-hook #'ahs-focus-out))
+  (add-function :after after-focus-change-function
+                (lambda (&rest _)
+                  (if (frame-focus-state) (ahs-focus-in) (ahs-focus-out)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 
