@@ -742,6 +742,15 @@ You can do these operations at One Key!
       (message "%s" msg)))
   nil)
 
+(defun ahs-overlays-in (prop name &optional beg end)
+  "Return overlays with PROP of NAME, from region BEG to END."
+  (unless beg (setq beg (point-min))) (unless end (setq end (point-max)))
+  (let ((lst '()) (ovs (overlays-in beg end)))
+    (dolist (ov ovs)
+      (when (eq name (overlay-get ov prop))
+        (push ov lst)))
+    lst))
+
 (defun ahs-current-overlay-window ()
   "Return current overlay from current window."
   (let (target-ov)
@@ -1243,6 +1252,8 @@ You can do these operations at One Key!
 If FORCE is non-nil, delete all in the current buffer."
   (setq ahs-current-overlay (ahs-delete-overlays ahs-current-overlay force)
         ahs-overlay-list (ahs-delete-overlays ahs-overlay-list force))
+  (ahs-delete-overlays (ahs-overlays-in 'ahs-symbol 'current) force)
+  (ahs-delete-overlays (ahs-overlays-in 'ahs-symbol 'others) force)
   (mapc 'ahs-open-necessary-overlay ahs-opened-overlay-list)
   (setq ahs-opened-overlay-list nil
         ahs-start-point         nil))
