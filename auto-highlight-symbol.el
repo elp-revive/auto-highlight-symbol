@@ -189,6 +189,8 @@
 ;;   prevent unhighlight even window isn't the selected one
 ;;   add disabled commands/minor-modes/flags
 ;;   remove flag `ahs-higlighted', no longer useful
+;;   fix interactive commands to newer version
+;;   drop support for Emacs 26.1 or lower
 ;;
 ;; v1.60
 ;;   allow mouse movement and still be highlighted
