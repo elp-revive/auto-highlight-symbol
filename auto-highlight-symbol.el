@@ -270,6 +270,7 @@
   (require 'easy-mmode)
   (require 'cl-lib)
   (require 'ht)
+  (require 'subr-x)
   (defvar dropdown-list-overlays nil))
 
 (eval-and-compile
@@ -670,7 +671,6 @@ You can do these operations at One Key!
 (defvar ahs-need-fontify nil)
 
 ;; Buffer local variable
-(defvar-local ahs-current-overlay nil)
 (defvar-local ahs-current-range nil)
 (defvar-local ahs-edit-mode-enable nil)
 (defvar-local ahs-inhibit-modification nil)
@@ -735,10 +735,28 @@ You can do these operations at One Key!
   (unless ahs-suppress-log
     (let* ((data (ahs-log-format key))
            (msg (apply #'format data args))
-           (message-log-max
-            (not ahs-log-echo-area-only)))
+           (message-log-max (not ahs-log-echo-area-only)))
       (message "%s" msg)))
   nil)
+
+(defun ahs-current-overlay-window ()
+  "Return current overlay from current window."
+  (let (target-ov)
+    (cl-some (lambda (ov)
+               (setq target-ov ov)
+               (eq (overlay-get ov 'ahs-symbol) 'current))
+             (ahs-overlay-list-window))
+    target-ov))
+
+(defun ahs-overlay-list-window ()
+  "Return a list of overlays exits in current window."
+  (let (ov-lst)
+    (dolist (ov ahs-overlay-list)
+      (when (and (overlayp ov)
+                 (eq (overlay-get ov 'ahs-symbol) 'others)
+                 (eq (overlay-get ov 'window) (selected-window)))
+        (push ov ov-lst)))
+    (reverse ov-lst)))
 
 ;;
 ;; (@* "Range plugin" )
@@ -1156,7 +1174,7 @@ You can do these operations at One Key!
 
            unless (ahs-face-p face 'ahs-inhibit-face-list)
            do (let ((overlay (make-overlay beg end nil nil t)))
-                (overlay-put overlay 'ahs-symbol t)
+                (overlay-put overlay 'ahs-symbol 'others)
                 (overlay-put overlay 'window (selected-window))
                 (overlay-put overlay 'face
                              (if (ahs-face-p face 'ahs-definition-face-list)
@@ -1178,7 +1196,7 @@ You can do these operations at One Key!
       (when ahs-need-fontify (ahs-fontify))
       (ahs-light-up current)
       ;;)
-      (when ahs-overlay-list
+      (when (ahs-overlay-list-window)
         (ahs-highlight-current-symbol current beg end)
         (setq ahs-start-point  beg
               ahs-search-work  nil
@@ -1213,9 +1231,7 @@ You can do these operations at One Key!
 
     (overlay-put overlay 'modification-hooks    '(ahs-modification-hook))
     (overlay-put overlay 'insert-in-front-hooks '(ahs-modification-hook))
-    (overlay-put overlay 'insert-behind-hooks   '(ahs-modification-hook))
-
-    (setq ahs-current-overlay overlay)))
+    (overlay-put overlay 'insert-behind-hooks   '(ahs-modification-hook))))
 
 (defun ahs-remove-all-overlay (&optional force)
   "Remove all overlays."
@@ -1223,14 +1239,14 @@ You can do these operations at One Key!
     (when (or force (eq (overlay-get ov 'window) (selected-window)))
       (delete-overlay ov)))
   ;; Make sure we only deletes the current window's overlay
-  (dolist (ov (ahs-util-overlays-in 'ahs-symbol t))
+  (dolist (ov (ahs-util-overlays-in 'ahs-symbol 'others))
     (when (or force (eq (overlay-get ov 'window) (selected-window)))
       (delete-overlay ov)))
   (mapc 'ahs-open-necessary-overlay ahs-opened-overlay-list)
-  (setq ahs-current-overlay     nil
-        ahs-opened-overlay-list nil
-        ahs-overlay-list        nil
-        ahs-start-point         nil))
+  (setq ahs-opened-overlay-list nil
+        ahs-start-point         nil)
+  (setq ahs-overlay-list  ; If `overlay-start' return nil, it has been deleted
+        (cl-remove-if-not (lambda (ov) (overlay-start ov)) ahs-overlay-list)))
 
 ;;
 ;; (@* "Edit mode" )
@@ -1249,7 +1265,7 @@ You can do these operations at One Key!
   "`post-command-hook' used in edit mode."
   (cond
    ;; Exit edit mode
-   ((not (ahs-inside-overlay-p ahs-current-overlay))
+   ((not (ahs-inside-overlay-p (ahs-current-overlay-window)))
     (ahs-edit-mode-off nil nil))
 
    ;; Modify!!
@@ -1262,10 +1278,11 @@ You can do these operations at One Key!
 
 (defun ahs-symbol-modification ()
   "Modify all highlighted symbols."
-  (let ((source (buffer-substring-no-properties
-                 (overlay-start ahs-current-overlay)
-                 (overlay-end ahs-current-overlay))))
-    (dolist (change ahs-overlay-list)
+  (let* ((current-overlay (ahs-current-overlay-window))
+         (source (buffer-substring-no-properties
+                  (overlay-start current-overlay)
+                  (overlay-end current-overlay))))
+    (dolist (change (ahs-overlay-list-window))
       (when (overlayp change)
         (let* ((beg (overlay-start change))
                (end (overlay-end change))
@@ -1282,7 +1299,7 @@ You can do these operations at One Key!
   (setq ahs-edit-mode-enable     t
         ahs-start-modification   nil
         ahs-inhibit-modification nil)
-  (overlay-put ahs-current-overlay 'face ahs-edit-mode-face)
+  (overlay-put (ahs-current-overlay-window) 'face ahs-edit-mode-face)
   (remove-hook 'post-command-hook #'ahs-unhighlight t)
   (add-hook 'post-command-hook #'ahs-edit-post-command-hook-function nil t)
   (run-hooks 'ahs-edit-mode-on-hook)
@@ -1312,9 +1329,9 @@ You can do these operations at One Key!
   (setq ahs-edit-mode-enable nil)
   (if (and interactive
            (not ahs-onekey-range-store)
-           (ahs-inside-overlay-p ahs-current-overlay))
+           (ahs-inside-overlay-p (ahs-current-overlay-window)))
       (progn
-        (overlay-put ahs-current-overlay 'face (ahs-current-plugin-prop 'face))
+        (overlay-put (ahs-current-overlay-window) 'face (ahs-current-plugin-prop 'face))
         (add-hook 'post-command-hook #'ahs-unhighlight nil t))
     (ahs-remove-all-overlay))
   (remove-hook 'post-command-hook #'ahs-edit-post-command-hook-function t)
@@ -1384,41 +1401,43 @@ You can do these operations at One Key!
 
 (defun ahs-select (pred &optional reverse onlydef)
   "Select highlighted symbol."
-  (let* ((next (cl-loop with start = nil
-                        for overlay in (if reverse
-                                           (reverse ahs-overlay-list)
-                                         ahs-overlay-list)
+  (when-let*
+      ((current-overlay (ahs-current-overlay-window))
+       (next (cl-loop with start = nil
+                      for overlay in (if reverse
+                                         (reverse (ahs-overlay-list-window))
+                                       (ahs-overlay-list-window))
 
-                        for skip = (cl-loop for hidden in (overlays-at (overlay-start overlay))
-                                            when (overlay-get hidden 'invisible)
-                                            when (or (equal ahs-select-invisible 'skip)
-                                                     (not (overlay-get hidden 'isearch-open-invisible)))
-                                            return hidden)
+                      for skip = (cl-loop for hidden in (overlays-at (overlay-start overlay))
+                                          when (overlay-get hidden 'invisible)
+                                          when (or (equal ahs-select-invisible 'skip)
+                                                   (not (overlay-get hidden 'isearch-open-invisible)))
+                                          return hidden)
 
-                        for selectable = (and (not skip)
-                                              (or (not onlydef)
-                                                  (ahs-definition-p overlay)))
+                      for selectable = (and (not skip)
+                                            (or (not onlydef)
+                                                (ahs-definition-p overlay)))
 
-                        when selectable
-                        unless start do (setq start overlay)
+                      when selectable
+                      unless start do (setq start overlay)
 
-                        when selectable
-                        when (funcall pred overlay) return overlay
+                      when selectable
+                      when (funcall pred overlay) return overlay
 
-                        finally
-                        return (or start
-                                   ahs-current-overlay)))
+                      finally
+                      return (or start
+                                 current-overlay)))
 
-         (beg (overlay-start next))
-         (end (overlay-end next)))
+       (beg (overlay-start next))
+       (end (overlay-end next)))
 
     (dolist (overlay
              (unless (equal ahs-select-invisible 'skip)
                (ahs-get-openable-overlays next)))
       (ahs-open-invisible-overlay-temporary overlay))
 
-    (goto-char (+ beg (- (point) (overlay-start ahs-current-overlay))))
-    (move-overlay ahs-current-overlay beg end))
+    (goto-char (+ beg (- (point) (overlay-start current-overlay))))
+    (move-overlay current-overlay beg end))
 
   (when (equal ahs-select-invisible 'immediate)
     (ahs-close-unnecessary-overlays)))
@@ -1477,8 +1496,8 @@ You can do these operations at One Key!
   (overlay-put overlay from nil))
 
 ;; These are use for navigation
-(defun ahs-forward-p        (x) (< (overlay-start ahs-current-overlay) (overlay-start x)))
-(defun ahs-backward-p       (x) (> (overlay-start ahs-current-overlay) (overlay-start x)))
+(defun ahs-forward-p        (x) (< (overlay-start (ahs-current-overlay-window)) (overlay-start x)))
+(defun ahs-backward-p       (x) (> (overlay-start (ahs-current-overlay-window)) (overlay-start x)))
 (defun ahs-definition-p     (x) (eq (overlay-get x 'face) 'ahs-definition-face))
 (defun ahs-start-point-p    (x) (equal (overlay-start x) ahs-start-point))
 (defun ahs-inside-overlay-p (x) (and (>= (point) (overlay-start x)) (<= (point) (overlay-end x))))
@@ -1494,14 +1513,14 @@ You can do these operations at One Key!
 (defun ahs-stat ()
   "Return list of the current status."
   (append (list (ahs-decorated-current-plugin-name)
-                (length ahs-overlay-list))
+                (length (ahs-overlay-list-window)))
 
           (cl-loop with hidden?   = 0
                    with before    = 0
                    with after     = 0
                    with displayed = 0
 
-                   for x in ahs-overlay-list
+                   for x in (ahs-overlay-list-window)
 
                    count (funcall #'ahs-backward-p x) into before
                    count (funcall #'ahs-forward-p x)  into after
