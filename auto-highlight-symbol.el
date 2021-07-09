@@ -10,7 +10,7 @@
 ;; Version: 1.60
 ;; Keywords: highlight face match convenience
 ;; URL: http://github.com/jcs-elpa/auto-highlight-symbol
-;; Package-Requires: ((emacs "24.4") (ht "2.3"))
+;; Package-Requires: ((emacs "26.1") (ht "2.3"))
 ;;
 ;; This file is NOT part of GNU Emacs.
 
@@ -671,6 +671,7 @@ You can do these operations at One Key!
 (defvar ahs-need-fontify nil)
 
 ;; Buffer local variable
+(defvar-local ahs-current-overlay nil)
 (defvar-local ahs-current-range nil)
 (defvar-local ahs-edit-mode-enable nil)
 (defvar-local ahs-inhibit-modification nil)
@@ -744,8 +745,8 @@ You can do these operations at One Key!
   (let (target-ov)
     (cl-some (lambda (ov)
                (setq target-ov ov)
-               (eq (overlay-get ov 'ahs-symbol) 'current))
-             (ahs-overlay-list-window))
+               (eq (overlay-get ov 'window) (selected-window)))
+             ahs-current-overlay)
     target-ov))
 
 (defun ahs-overlay-list-window ()
@@ -753,7 +754,6 @@ You can do these operations at One Key!
   (let (ov-lst)
     (dolist (ov ahs-overlay-list)
       (when (and (overlayp ov)
-                 (eq (overlay-get ov 'ahs-symbol) 'others)
                  (eq (overlay-get ov 'window) (selected-window)))
         (push ov ov-lst)))
     (reverse ov-lst)))
@@ -1231,22 +1231,19 @@ You can do these operations at One Key!
 
     (overlay-put overlay 'modification-hooks    '(ahs-modification-hook))
     (overlay-put overlay 'insert-in-front-hooks '(ahs-modification-hook))
-    (overlay-put overlay 'insert-behind-hooks   '(ahs-modification-hook))))
+    (overlay-put overlay 'insert-behind-hooks   '(ahs-modification-hook))
+
+    (push overlay ahs-current-overlay)))
 
 (defun ahs-remove-all-overlay (&optional force)
-  "Remove all overlays."
-  (dolist (ov (ahs-util-overlays-in 'ahs-symbol 'current))
-    (when (or force (eq (overlay-get ov 'window) (selected-window)))
-      (delete-overlay ov)))
-  ;; Make sure we only deletes the current window's overlay
-  (dolist (ov (ahs-util-overlays-in 'ahs-symbol 'others))
-    (when (or force (eq (overlay-get ov 'window) (selected-window)))
-      (delete-overlay ov)))
+  "Remove all overlays.
+
+If FORCE is non-nil, delete all in the current buffer."
+  (setq ahs-current-overlay (ahs-delete-overlays ahs-current-overlay force)
+        ahs-overlay-list (ahs-delete-overlays ahs-overlay-list force))
   (mapc 'ahs-open-necessary-overlay ahs-opened-overlay-list)
   (setq ahs-opened-overlay-list nil
-        ahs-start-point         nil)
-  (setq ahs-overlay-list  ; If `overlay-start' return nil, it has been deleted
-        (cl-remove-if-not (lambda (ov) (overlay-start ov)) ahs-overlay-list)))
+        ahs-start-point         nil))
 
 ;;
 ;; (@* "Edit mode" )
@@ -1598,14 +1595,16 @@ You can do these operations at One Key!
            (memq major-mode ahs-modes))
       (auto-highlight-symbol-mode t)))
 
-(defun ahs-util-overlays-in (prop name &optional beg end)
-  "Return overlays with PROP of NAME, from region BEG to END."
-  (unless beg (setq beg (point-min))) (unless end (setq end (point-max)))
-  (let ((lst '()) (ovs (overlays-in beg end)))
-    (dolist (ov ovs)
-      (when (eq name (overlay-get ov prop))
-        (push ov lst)))
-    lst))
+(defun ahs-delete-overlays (lst &optional force)
+  "Delete overlays from LST.
+
+If FORCE is non-nil, delete all in the current buffer."
+  (dolist (ov lst)
+    ;; Make sure we only deletes the current window's overlay
+    (when (or force (eq (overlay-get ov 'window) (selected-window)))
+      (delete-overlay ov)))
+  ;; If `overlay-start' return nil, it has been deleted
+  (cl-remove-if-not (lambda (ov) (overlay-start ov)) lst))
 
 ;;
 ;; (@* "Interactive" )
