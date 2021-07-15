@@ -267,13 +267,10 @@
 
 ;;; Code:
 
-(eval-when-compile
-  ;; Suppress bytecompiler error warning
-  (require 'easy-mmode)
-  (require 'cl-lib)
-  (require 'ht)
-  (require 'subr-x)
-  (defvar dropdown-list-overlays nil))
+(require 'easy-mmode)
+(require 'cl-lib)
+(require 'ht)
+(require 'subr-x)
 
 (eval-and-compile
   (defconst ahs-web "http://github.com/jcs-elpa/auto-highlight-symbol-mode/")
@@ -686,6 +683,14 @@ You can do these operations at One Key!
 
 (defvar ahs-window-map (ht-create))
 (defvar ahs-selected-window nil)
+
+(defvar dropdown-list-overlays nil)
+
+;;
+;; (@* "External" )
+;;
+
+(defvar dropdown-list-overlays nil)
 
 ;;
 ;; (@* "Logging" )
