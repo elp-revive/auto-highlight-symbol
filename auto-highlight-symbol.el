@@ -505,11 +505,12 @@ This variable can be set in three different types.
     Function is called with one argument, the symbol.
 
   3. `alist'
-      '(
-        ( `emacs-lisp-mode' . \"REGEXP\")          ;; Regular expression in emacs-lisp-mode
-        ( php-mode        . my-include-function) ;; Function predicate in php-mode
-        )
-    If major mode not in list `ahs-default-symbol-regexp' will be used instead."
+  '(
+    ( `emacs-lisp-mode' . \"REGEXP\")  ; Regular expression in emacs-lisp-mode
+    ( php-mode        . my-include-function) ; Function predicate in php-mode
+    )
+
+If major mode not in list `ahs-default-symbol-regexp' will be used instead."
   :group 'auto-highlight-symbol
   :type '(choice (regexp :tag "Regexp" ahs-default-symbol-regexp)
                  (symbol :tag "Function" function)
