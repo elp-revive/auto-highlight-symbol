@@ -810,7 +810,7 @@ You can do these operations at One Key!
         (ahs-log-echo-area-only))
     (ahs-log 'plugin-error-log1)
     (ahs-log 'plugin-error-log2
-             err (ahs-get-plugin-prop 'name range) prop)  ;; infinite loop? if 'name is badly function
+             err (ahs-get-plugin-prop 'name range) prop)  ; infinite loop? if 'name is badly function
     (ahs-log 'plugin-error-log3)
 
     (ahs-change-range-internal ahs-default-range)
@@ -1504,7 +1504,7 @@ If FORCE is non-nil, delete all in the current buffer."
     (if func
         (funcall func overlay nil)
       (ahs-store-property overlay 'invisible  'isearch-invisible)
-      (ahs-store-property overlay 'intangible 'isearch-intangible)) ;; intangible need?
+      (ahs-store-property overlay 'intangible 'isearch-intangible))  ; intangible need?
     (push overlay ahs-opened-overlay-list)))
 
 (defun ahs-store-property (overlay from to)
@@ -1659,7 +1659,8 @@ Limitation:
   (ahs-select 'ahs-start-point-p))
 
 (defun ahs-change-range (&optional range nomsg)
-  "Current plugin change to `RANGE' plugin. `RANGE' defaults to next runnable plugin."
+  "Current plugin change to `RANGE' plugin. `RANGE' defaults to next runnable
+plugin."
   (interactive)
   (ahs-clear (not nomsg))
 
@@ -1720,7 +1721,8 @@ That's all."
 ;;
 
 (defun ahs-edit-mode (arg &optional temporary)
-  "Turn on edit mode. With a prefix argument, current plugin change to `whole buffer' temporary."
+  "Turn on edit mode. With a prefix argument, current plugin change to `whole
+buffer' temporary."
   (interactive
    (if ahs-edit-mode-enable (list nil)
      (list t current-prefix-arg)))
