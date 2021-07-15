@@ -529,11 +529,12 @@ This variable can be set in three different types.
     Function is called with one argument, the symbol.
 
   3. `alist'
-      '(
-        ( `ruby-mode' . \"\\_<\\(end\\|def\\|class\\)\\_>\") ;; Regular expression in ruby-mode
-        ( dos-mode  . i-hate-wxxxxxs)                      ;; Function predicate in dos-mode
+      '(;; Regular expression in ruby-mode
+        ( `ruby-mode' . \"\\_<\\(end\\|def\\|class\\)\\_>\")
+        ( dos-mode  . i-hate-wxxxxxs)  ; Function predicate in dos-mode
         )
-      If major mode not in list all symbols can be highlighted."
+
+If major mode not in list all symbols can be highlighted."
   :group 'auto-highlight-symbol
   :type '(choice (const  :tag "All symbols can be highlighted" nil)
                  (regexp :tag "Regexp" "")
