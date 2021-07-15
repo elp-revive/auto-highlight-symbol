@@ -507,7 +507,7 @@ This variable can be set in three different types.
   3. `alist'
   '(
     ( `emacs-lisp-mode' . \"REGEXP\")  ; Regular expression in emacs-lisp-mode
-    ( php-mode        . my-include-function) ; Function predicate in php-mode
+    ( php-mode . my-include-function) ; Function predicate in php-mode
     )
 
 If major mode not in list `ahs-default-symbol-regexp' will be used instead."
