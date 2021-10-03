@@ -1239,11 +1239,11 @@ You can do these operations at One Key!
 
 (defun ahs-highlight-current-symbol (current beg end)
   "Highlight current symbol."
-  (let* ((overlay (make-overlay beg end nil nil t)))
-
+  (let* ((overlay (make-overlay beg end nil nil t))
+         (face (ahs-current-plugin-prop 'face)))
     (overlay-put overlay 'ahs-symbol 'current)
     (overlay-put overlay 'priority ahs-overlay-priority)
-    (overlay-put overlay 'face (if current ahs-plugin-default-face ahs-plugin-default-face-unfocused))
+    (overlay-put overlay 'face face)
     (overlay-put overlay 'help-echo '(ahs-stat-string))
     (overlay-put overlay 'window (selected-window))
 
