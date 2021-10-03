@@ -784,7 +784,6 @@ You can do these operations at One Key!
   "Macro of regist range plugin.
 
 \(fn PLUGIN-NAME BODY [DOCSTRING])"
-
   (declare (indent 1))
   `(progn
      (defvar ,(intern (format "ahs-range-%s" plugin-name))
@@ -823,7 +822,8 @@ You can do these operations at One Key!
     (cond
      ((equal value 'abort) 'abort)           ; abort
      ((equal prop 'face)                     ; face
-      (if (facep value) value ahs-plugin-default-face))
+      (if (facep value) value
+        (if arg ahs-plugin-default-face ahs-plugin-default-face-unfocused)))
 
      ((and (functionp value)
            (equal prop 'major-mode)) value)  ; major-mode
@@ -902,7 +902,6 @@ You can do these operations at One Key!
     display
   '((name    . "display area")
     (lighter . "HS")
-    (face    . ahs-plugin-default-face)
     (start   . window-start)
     (end     . window-end))
   "Display area")
@@ -1240,7 +1239,7 @@ You can do these operations at One Key!
 (defun ahs-highlight-current-symbol (current beg end)
   "Highlight current symbol."
   (let* ((overlay (make-overlay beg end nil nil t))
-         (face (ahs-current-plugin-prop 'face)))
+         (face (ahs-current-plugin-prop 'face current)))
     (overlay-put overlay 'ahs-symbol 'current)
     (overlay-put overlay 'priority ahs-overlay-priority)
     (overlay-put overlay 'face face)
