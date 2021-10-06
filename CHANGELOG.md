@@ -9,6 +9,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 > Released N/A
 
 * introduce new variable `ahs-highlight-upon-window-switch' to adapte old behaviour
+* introduce new variable `ahs-highlight-all-windows' to adapte old behaviour
 
 ## v1.61
 > Released Jul 9, 2021
