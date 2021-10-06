@@ -484,6 +484,11 @@ Affects only overlay(hidden text) has a property `isearch-open-invisible'."
 ;; (@* "Highlight Rules" )
 ;;
 
+(defcustom ahs-highlight-upon-window-switch t
+  "*Non-nil means rehighlighting is triggered upon window switch."
+  :group 'auto-highlight-symbol
+  :type 'boolean)
+
 (defcustom ahs-case-fold-search t
   "*Non-nil means symbol search ignores case."
   :group 'auto-highlight-symbol
@@ -1005,8 +1010,11 @@ You can do these operations at One Key!
     (when (timerp ahs-idle-timer) (cancel-timer ahs-idle-timer))
     (setq ahs-idle-timer
           (run-with-timer
-           ;; if switch window, immediately change focus/unfocus
-           (if (eq ahs-selected-window (selected-window)) ahs-idle-interval 0)
+           ;; if switch window, immediately change focus/unfocus unless the user
+           ;; doesn't want us to
+           (if (or (eq ahs-selected-window (selected-window))
+                   (not ahs-highlight-upon-window-switch))
+               ahs-idle-interval 0)
            nil #'ahs-idle-function))))
 
 ;;
