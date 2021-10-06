@@ -155,6 +155,8 @@
 ;;    Number of seconds to wait before highlighting symbol.
 ;;  `ahs-case-fold-search'
 ;;    *Non-nil means symbol search ignores case.
+;;  `ahs-highlight-upon-window-switch'
+;;    *Non-nil means rehighlighting is triggered upon window switch.
 ;;  `ahs-include'
 ;;    Variable for start highlighting.
 ;;  `ahs-exclude'
@@ -184,6 +186,9 @@
 ;;
 
 ;;; (@* "Changelog" )
+;;
+;; v1.62
+;;   introduce new variable `ahs-highlight-upon-window-switch' to adapte old behaviour
 ;;
 ;; v1.61
 ;;   prevent unhighlight even window isn't the selected one
