@@ -1717,8 +1717,8 @@ That's all."
 (defun ahs-unfocus-all ()
   "Unfocus all windows."
   (interactive)
-  (setq ahs-selected-window nil)
-  (walk-windows (lambda (win) (with-selected-window win (ahs--do-hl)))))
+  (ahs-idle-function)
+  (setq ahs-selected-window nil))
 
 (defun ahs-goto-web ()
   "Go to official? web site."
