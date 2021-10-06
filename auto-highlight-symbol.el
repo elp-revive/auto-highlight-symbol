@@ -415,6 +415,13 @@ Affects only overlay(hidden text) has a property `isearch-open-invisible'."
 ;; (@* "Highlight Rules" )
 ;;
 
+(defcustom ahs-highlight-all-windows t
+  "*Non-nil means symbols in all windows candidates for highlighting.
+
+Otherwise, the only window that is considered is the current one."
+  :group 'auto-highlight-symbol
+  :type 'boolean)
+
 (defcustom ahs-highlight-upon-window-switch t
   "*Non-nil means rehighlighting is triggered upon window switch."
   :group 'auto-highlight-symbol
@@ -954,7 +961,9 @@ You can do these operations at One Key!
 (defun ahs-idle-function ()
   "Idle function. Called by `ahs-idle-timer'."
   (setq ahs-selected-window (selected-window))
-  (walk-windows (lambda (win) (with-selected-window win (ahs--do-hl)))))
+  (if ahs-highlight-all-windows
+      (walk-windows (lambda (win) (with-selected-window win (ahs--do-hl))))
+    (ahs--do-hl)))
 
 (defun ahs--do-hl ()
   "Do the highlighting."
@@ -1646,8 +1655,8 @@ That's all."
 (defun ahs-unfocus-all ()
   "Unfocus all windows."
   (interactive)
-  (setq ahs-selected-window nil)
-  (walk-windows (lambda (win) (with-selected-window win (ahs--do-hl)))))
+  (ahs-idle-function)
+  (setq ahs-selected-window nil))
 
 (defun ahs-goto-web ()
   "Go to official? web site."
