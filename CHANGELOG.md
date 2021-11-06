@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
 
+## v1.63 (Unreleased)
+> Released N/A
+
+* introduce new variable `ahs-enable-focus-hooks' to enable/disable focus hooks
+
+
 ## v1.62 (Unreleased)
 > Released N/A
 
