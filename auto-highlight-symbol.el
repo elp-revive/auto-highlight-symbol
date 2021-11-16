@@ -430,7 +430,7 @@ Otherwise, the only window that is considered is the current one."
   :type 'boolean)
 
 (defcustom ahs-enable-focus-hooks t
-  "Toggles whether to enable focus-in and focus-out hooks"
+  "Toggles whether to enable focus-in and focus-out hooks."
   :group 'auto-highlight-symbol
   :type 'boolean)
 
@@ -980,7 +980,9 @@ You can do these operations at One Key!
              (not (memq this-command ahs-disabled-commands))
              (not (cl-some (lambda (flag) (symbol-value flag)) ahs-disabled-flags)))
     (let ((hl (ahs-highlight-p)))
-      (when hl (ahs-highlight (nth 0 hl) (nth 1 hl) (nth 2 hl))))))
+      (when hl
+        (ht-set ahs-window-map (selected-window) hl)
+        (ahs-highlight (nth 0 hl) (nth 1 hl) (nth 2 hl))))))
 
 (defmacro ahs-add-overlay-face (pos face)
   "Not documented, POS, FACE."
@@ -1173,7 +1175,6 @@ You can do these operations at One Key!
         (setq ahs-start-point  beg
               ahs-search-work  nil
               ahs-need-fontify nil)
-        (ht-set ahs-window-map (selected-window) symbol)
         t))))
 
 (defun ahs-unhighlight (&optional force)
@@ -1181,7 +1182,8 @@ You can do these operations at One Key!
   (when (or force
             (and (not (memq this-command ahs-unhighlight-allowed-commands))
                  ;; Don't unhighlight if we are on the same symbol
-                 (not (equal (ht-get ahs-window-map (selected-window)) (thing-at-point 'symbol)))))
+                 (not (equal (ht-get ahs-window-map (selected-window))
+                             (ahs-highlight-p)))))
     ;; Don't pass in force here!
     ;;
     ;; The default behaviour should only delete it's current window
