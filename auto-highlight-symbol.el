@@ -1649,12 +1649,11 @@ The details are as follows:
   4. Symbols after the cursor
 
 That's all."
-
   (interactive)
   (let ((ahs-suppress-log
          (and (not (ahs-called-interactively-p 'interactive))
               ahs-suppress-log)))
-    (ahs-log 'self (ahs-stat-string))))
+    (ignore-errors (ahs-log 'self (ahs-stat-string)))))
 
 (defun ahs-highlight-now ()
   "Highlight NOW!!"
