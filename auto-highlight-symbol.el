@@ -953,7 +953,7 @@ You can do these operations at One Key!
     (ahs-unhighlight)  ; unhighlight it once here so we can see the result immediately
     (when (timerp ahs-idle-timer) (cancel-timer ahs-idle-timer))
     (setq ahs-idle-timer
-          (run-with-timer
+          (run-with-idle-timer
            ;; if switch window, immediately change focus/unfocus unless the user
            ;; doesn't want us to
            (if (or (eq ahs-selected-window (selected-window))
@@ -1154,8 +1154,7 @@ You can do these operations at One Key!
                              (if (ahs-face-p face 'ahs-definition-face-list)
                                  (if current ahs-definition-face
                                    ahs-definition-face-unfocused)
-                               (if current ahs-face
-                                 ahs-face-unfocused)))
+                               (if current ahs-face ahs-face-unfocused)))
                 (push overlay ahs-overlay-list))))
 
 (defun ahs-highlight (symbol beg end)
