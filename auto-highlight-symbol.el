@@ -947,7 +947,7 @@ You can do these operations at One Key!
 ;; (@* "Timer" )
 ;;
 
-(defun ahs-start-timer ()
+(defun ahs-start-timer (&rest _)
   "Start idle timer."
   (when auto-highlight-symbol-mode
     (ahs-unhighlight)  ; unhighlight it once here so we can see the result immediately
@@ -1554,7 +1554,8 @@ If FORCE is non-nil, delete all in the current buffer."
   (unless ahs-current-range
     (ahs-change-range-internal ahs-default-range))
   (ahs-set-lighter)
-  (add-hook 'post-command-hook #'ahs-start-timer nil t))
+  (add-hook 'post-command-hook #'ahs-start-timer nil t)
+  (add-hook 'after-change-functions #'ahs-start-timer nil t))
 
 (defun ahs-clear (&optional verbose)
   "Remove all overlays and exit edit mode."
@@ -1562,7 +1563,8 @@ If FORCE is non-nil, delete all in the current buffer."
       (ahs-edit-mode-off (not verbose) nil)
     (ahs-unhighlight-all t)
     (ht-clear ahs-window-map)
-    (remove-hook 'post-command-hook #'ahs-start-timer t)))
+    (remove-hook 'post-command-hook #'ahs-start-timer t)
+    (remove-hook 'after-change-functions #'ahs-start-timer t)))
 
 (defun ahs-mode-maybe ()
   "Fire up `auto-highlight-symbol-mode' if major-mode in ahs-modes."
