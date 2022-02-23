@@ -335,7 +335,7 @@ Affects only overlay(hidden text) has a property `isearch-open-invisible'."
   :group 'auto-highlight-symbol
   :type 'hook)
 
-(defvar-local ahs-idle-timer nil
+(defvar ahs-idle-timer nil
   "Timer used to highlighting symbol whenever Emacs is idle.")
 
 (defcustom ahs-idle-interval 1.0
