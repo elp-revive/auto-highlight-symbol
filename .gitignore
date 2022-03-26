@@ -2,11 +2,14 @@
 /.git
 /recipes
 /test
-auto-highlight-symbol-pkg.el
 
 # ignore generated files.
 *.elc
 
-# ignore I use to not ignore.
-Update_Log.txt
-TODO(jenchieh).txt
+# eask packages
+.eask/
+dist/
+
+# packaging
+*-autoloads.el
+*-pkg.el
