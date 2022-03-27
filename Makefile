@@ -5,14 +5,12 @@ EASK ?= eask
 
 TEST-FILES := $(shell ls test/auto-highlight-symbol-*.el)
 
-.PHONY: clean checkdoc lint install compile unix-test
+.PHONY: clean checkdoc lint package install compile unix-test
 
 ci: clean package install compile
 
 package:
 	@echo "Packaging..."
-	$(EASK) autoloads
-	$(EASK) pkg-file
 	$(EASK) package
 
 install:
