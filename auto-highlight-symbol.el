@@ -951,16 +951,18 @@ You can do these operations at One Key!
 (defun ahs-start-timer (&rest _)
   "Start idle timer."
   (when auto-highlight-symbol-mode
-    (ahs-unhighlight)  ; unhighlight it once here so we can see the result immediately
-    (when (timerp ahs-idle-timer) (cancel-timer ahs-idle-timer))
-    (setq ahs-idle-timer
-          (run-with-idle-timer
-           ;; if switch window, immediately change focus/unfocus unless the user
-           ;; doesn't want us to
-           (if (or (eq ahs-selected-window (selected-window))
-                   (not ahs-highlight-upon-window-switch))
-               ahs-idle-interval 0)
-           nil #'ahs-idle-function))))
+    (save-match-data
+      (progn
+        (ahs-unhighlight)  ; unhighlight it once here so we can see the result immediately
+        (when (timerp ahs-idle-timer) (cancel-timer ahs-idle-timer))
+        (setq ahs-idle-timer
+              (run-with-idle-timer
+               ;; if switch window, immediately change focus/unfocus unless the user
+               ;; doesn't want us to
+               (if (or (eq ahs-selected-window (selected-window))
+                       (not ahs-highlight-upon-window-switch))
+                   ahs-idle-interval 0)
+               nil #'ahs-idle-function))))))
 
 ;;
 ;; (@* "Idle" )
