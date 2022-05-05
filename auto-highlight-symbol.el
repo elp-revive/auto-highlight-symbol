@@ -552,10 +552,10 @@ You can do these operations at One Key!
   `(define-key (if (keymapp ,keymap)
                    ,keymap
                  auto-highlight-symbol-mode-map)
-     (read-kbd-macro ,keys)
-     (lambda()
-       (interactive)
-       (ahs-onekey-edit-function ',plugin-name ,keep))))
+               (read-kbd-macro ,keys)
+               (lambda()
+                 (interactive)
+                 (ahs-onekey-edit-function ',plugin-name ,keep))))
 
 (defmacro ahs-onekey-change (keys plugin-name &optional keymap)
   "Macro of change plugin.
@@ -569,8 +569,8 @@ You can do these operations at One Key!
   `(define-key (if (keymapp ,keymap)
                    ,keymap
                  auto-highlight-symbol-mode-map)
-     (read-kbd-macro ,keys)
-     ',(intern (format "ahs-chrange-%s" plugin-name))))
+               (read-kbd-macro ,keys)
+               ',(intern (format "ahs-chrange-%s" plugin-name))))
 
 ;;
 ;; (@* "Internal variable" )
@@ -952,17 +952,16 @@ You can do these operations at One Key!
   "Start idle timer."
   (when auto-highlight-symbol-mode
     (save-match-data
-      (progn
-        (ahs-unhighlight)  ; unhighlight it once here so we can see the result immediately
-        (when (timerp ahs-idle-timer) (cancel-timer ahs-idle-timer))
-        (setq ahs-idle-timer
-              (run-with-idle-timer
-               ;; if switch window, immediately change focus/unfocus unless the user
-               ;; doesn't want us to
-               (if (or (eq ahs-selected-window (selected-window))
-                       (not ahs-highlight-upon-window-switch))
-                   ahs-idle-interval 0)
-               nil #'ahs-idle-function))))))
+      (ahs-unhighlight)  ; unhighlight it once here so we can see the result immediately
+      (when (timerp ahs-idle-timer) (cancel-timer ahs-idle-timer))
+      (setq ahs-idle-timer
+            (run-with-idle-timer
+             ;; if switch window, immediately change focus/unfocus unless the user
+             ;; doesn't want us to
+             (if (or (eq ahs-selected-window (selected-window))
+                     (not ahs-highlight-upon-window-switch))
+                 ahs-idle-interval 0)
+             nil #'ahs-idle-function)))))
 
 ;;
 ;; (@* "Idle" )
