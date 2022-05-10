@@ -3,8 +3,6 @@ SHELL := /usr/bin/env bash
 EMACS ?= emacs
 EASK ?= eask
 
-TEST-FILES := $(shell ls test/auto-highlight-symbol-*.el)
-
 .PHONY: clean checkdoc lint package install compile test
 
 ci: clean package install compile
