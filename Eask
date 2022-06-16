@@ -2,6 +2,9 @@
          "1.61"
          "Automatic highlighting current symbol minor mode")
 
+(website-url "http://github.com/jcs-elpa/auto-highlight-symbol")
+(keywords "highlight" "face" "convenience" "match")
+
 (package-file "auto-highlight-symbol.el")
 
 (source "melpa")
