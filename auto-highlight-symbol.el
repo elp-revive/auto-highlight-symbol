@@ -1200,7 +1200,7 @@ You can do these operations at One Key!
     (overlay-put overlay 'ahs-symbol 'current)
     (overlay-put overlay 'priority ahs-overlay-priority)
     (overlay-put overlay 'face face)
-    (overlay-put overlay 'help-echo '(ahs-stat-string))
+    (overlay-put overlay 'help-echo '(or (ignore-errors (ahs-stat-string)) ""))
     (overlay-put overlay 'window (selected-window))
 
     (overlay-put overlay 'modification-hooks    '(ahs-modification-hook))
