@@ -13,7 +13,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 * introduce new variable `ahs-enable-focus-hooks' to enable/disable focus hooks (#17)
 * Fixed not clearing highlight issue when moving the whole symbol
 * Fixed highlighting when before/after insertion hooks.
-* Fix stringp error eval ahs-stat-string (#20)
+* Fix stringp error eval `ahs-stat-string` (#20)
 
 ## v1.61
 > Released Jul 9, 2021
