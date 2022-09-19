@@ -8,9 +8,9 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ## v1.62 (Unreleased)
 > Released N/A
 
-* introduce new variable `ahs-highlight-upon-window-switch' to adapte old behaviour
-* introduce new variable `ahs-highlight-all-windows' to adapte old behaviour
-* introduce new variable `ahs-enable-focus-hooks' to enable/disable focus hooks
+* introduce new variable `ahs-highlight-upon-window-switch' to adapte old behaviour (#15)
+* introduce new variable `ahs-highlight-all-windows' to adapte old behaviour (#14)
+* introduce new variable `ahs-enable-focus-hooks' to enable/disable focus hooks (#17)
 * Fixed not clearing highlight issue when moving the whole symbol
 * Fixed highlighting when before/after insertion hooks.
 * Fix stringp error eval ahs-stat-string (#20)
