@@ -11,7 +11,8 @@
 
 1. Place `auto-highlight-symbol.el` in your `load-path`.
 2. Add these two lines to your `.emacs.el` file
-```
+
+```elisp
 (require 'auto-highlight-symbol)
 (global-auto-highlight-symbol-mode t)
 ```
