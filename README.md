@@ -7,6 +7,15 @@
 
 [![CI](https://github.com/jcs-elpa/auto-highlight-symbol/actions/workflows/test.yml/badge.svg)](https://github.com/jcs-elpa/auto-highlight-symbol/actions/workflows/test.yml)
 
+## Setup
+
+1. Place `auto-highlight-symbol.el` in your `load-path`.
+2. Add these two lines to your `.emacs.el` file
+```
+(require 'auto-highlight-symbol)
+(global-auto-highlight-symbol-mode t)
+```
+
 ## Author
 
 * **Original Author:** 
