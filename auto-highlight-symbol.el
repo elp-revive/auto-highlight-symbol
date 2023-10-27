@@ -584,16 +584,16 @@ You can do these operations at One Key!
   "Comamnds that are inhibit for modification.")
 
 (defcustom ahs-unhighlight-allowed-commands
-  '(universal-argument
-    universal-argument-other-key
-    ahs-back-to-start
-    ahs-backward
-    ahs-backward-definition
-    ahs-display-stat
-    ahs-edit-mode
-    ahs-forward
-    ahs-forward-definition
-    ignore)
+  '( universal-argument
+     universal-argument-other-key
+     ahs-back-to-start
+     ahs-backward
+     ahs-backward-definition
+     ahs-display-stat
+     ahs-edit-mode
+     ahs-forward
+     ahs-forward-definition
+     ignore)
   "Commands allow to be highlight."
   :group 'auto-highlight-symbol
   :type 'list)
@@ -605,7 +605,7 @@ You can do these operations at One Key!
   :type 'list)
 
 (defcustom ahs-disabled-minor-modes
-  '(iedit-mode)
+  '( iedit-mode)
   "List of disabled minor modes."
   :group 'auto-highlight-symbol
   :type 'list)
@@ -777,7 +777,8 @@ You can do these operations at One Key!
         (if arg ahs-plugin-default-face ahs-plugin-default-face-unfocused)))
 
      ((and (functionp value)
-           (equal prop 'major-mode)) value)  ; major-mode
+           (equal prop 'major-mode))         ; major-mode
+      value)
      ((functionp value)                      ; function
       (condition-case err
           (if arg
@@ -951,6 +952,7 @@ You can do these operations at One Key!
 (defun ahs-start-timer (&rest _)
   "Start idle timer."
   (when auto-highlight-symbol-mode
+    (ahs-edit-post-command-hook-function)
     (save-match-data
       (ahs-unhighlight)  ; unhighlight it once here so we can see the result immediately
       (when (timerp ahs-idle-timer) (cancel-timer ahs-idle-timer))
@@ -1236,18 +1238,18 @@ If FORCE is non-nil, delete all in the current buffer."
 
 (defun ahs-edit-post-command-hook-function ()
   "`post-command-hook' used in edit mode."
-  (cond
-   ;; Exit edit mode
-   ((not (ahs-inside-overlay-p (car ahs-current-overlay)))
-    (ahs-edit-mode-off nil nil))
+  (when (and ahs-edit-mode-enable ahs-current-overlay)
+    (cond
+     ;; Exit edit mode
+     ((not (ahs-inside-overlay-p (car ahs-current-overlay)))
+      (ahs-edit-mode-off nil nil))
 
-   ;; Modify!!
-   ((and ahs-start-modification
-         (not ahs-inhibit-modification))
-    (ahs-symbol-modification)))
+     ;; Modify!!
+     ((not ahs-inhibit-modification)
+      (ahs-symbol-modification)))
 
-  (setq ahs-start-modification   nil
-        ahs-inhibit-modification nil))
+    (setq ahs-start-modification   nil
+          ahs-inhibit-modification nil)))
 
 (defun ahs-symbol-modification ()
   "Modify all highlighted symbols."
@@ -1269,33 +1271,34 @@ If FORCE is non-nil, delete all in the current buffer."
 
 (defun ahs-edit-mode-on ()
   "Turn `ON' edit mode."
-  (setq ahs-edit-mode-enable     t
-        ahs-start-modification   nil
-        ahs-inhibit-modification nil)
-  (overlay-put (ahs-current-overlay-window) 'face ahs-edit-mode-face)
-  (remove-hook 'post-command-hook #'ahs-unhighlight t)
-  (add-hook 'post-command-hook #'ahs-edit-post-command-hook-function nil t)
-  (run-hooks 'ahs-edit-mode-on-hook)
+  (if (not (ahs-current-overlay-window))
+      (ahs-edit-mode-off nil nil)
+    (setq ahs-edit-mode-enable     t
+          ahs-start-modification   nil
+          ahs-inhibit-modification nil)
+    (overlay-put (ahs-current-overlay-window) 'face ahs-edit-mode-face)
+    (remove-hook 'post-command-hook #'ahs-unhighlight t)
+    (run-hooks 'ahs-edit-mode-on-hook)
 
-  ;; Exit edit mode when undo over edit mode.
-  (push '(apply ahs-clear t) buffer-undo-list)
+    ;; Exit edit mode when undo over edit mode.
+    (push '(apply ahs-clear t) buffer-undo-list)
 
-  ;; Display log
-  (unless ahs-suppress-log
-    (let* ((st (ahs-stat))
-           (alert
-            (if (ahs-stat-alert-p st)
-                (format (ahs-log-format 'exist-elsewhere)
-                        (ahs-decorate-if
-                         (number-to-string
-                          (+ (nth 2 st)
-                             (nth 3 st))) ahs-warning-face)) "")))
-      (if ahs-onekey-range-store
-          (ahs-log 'onekey-turn-on-edit-mode
-                   (ahs-decorated-current-plugin-name) alert)
-        (ahs-log 'turn-on-edit-mode alert))))
+    ;; Display log
+    (unless ahs-suppress-log
+      (let* ((st (ahs-stat))
+             (alert
+              (if (ahs-stat-alert-p st)
+                  (format (ahs-log-format 'exist-elsewhere)
+                          (ahs-decorate-if
+                           (number-to-string
+                            (+ (nth 2 st)
+                               (nth 3 st))) ahs-warning-face)) "")))
+        (if ahs-onekey-range-store
+            (ahs-log 'onekey-turn-on-edit-mode
+                     (ahs-decorated-current-plugin-name) alert)
+          (ahs-log 'turn-on-edit-mode alert))))
 
-  (ahs-set-lighter))
+    (ahs-set-lighter)))
 
 (defun ahs-edit-mode-off (nomsg interactive)
   "Turn `OFF' edit mode."
@@ -1307,7 +1310,6 @@ If FORCE is non-nil, delete all in the current buffer."
         (overlay-put (ahs-current-overlay-window) 'face (ahs-current-plugin-prop 'face))
         (add-hook 'post-command-hook #'ahs-unhighlight nil t))
     (ahs-remove-all-overlay))
-  (remove-hook 'post-command-hook #'ahs-edit-post-command-hook-function t)
   (run-hooks 'ahs-edit-mode-off-hook)
 
   ;; Display log
