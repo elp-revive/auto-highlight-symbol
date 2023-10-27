@@ -1,4 +1,5 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![JCS-ELPA](https://raw.githubusercontent.com/jcs-emacs/badges/master/elpa/v/auto-highlight-symbol.svg)](https://jcs-emacs.github.io/jcs-elpa/#/auto-highlight-symbol)
 [![MELPA](https://melpa.org/packages/auto-highlight-symbol-badge.svg)](https://melpa.org/#/auto-highlight-symbol)
 [![MELPA Stable](https://stable.melpa.org/packages/auto-highlight-symbol-badge.svg)](https://stable.melpa.org/#/auto-highlight-symbol)
 
