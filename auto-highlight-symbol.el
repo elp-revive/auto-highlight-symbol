@@ -1236,7 +1236,6 @@ If FORCE is non-nil, delete all in the current buffer."
 
 (defun ahs-edit-post-command-hook-function ()
   "`post-command-hook' used in edit mode."
-  (jcs-print ahs-current-overlay)
   (cond
    ;; Exit edit mode
    ((not (ahs-inside-overlay-p (car ahs-current-overlay)))
