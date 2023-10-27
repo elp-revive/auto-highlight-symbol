@@ -234,42 +234,42 @@
   :link `(url-link :tag "Information" ,(eval-when-compile ahs-web)))
 
 (defcustom ahs-modes
-  '(actionscript-mode
-    apache-mode
-    bat-generic-mode
-    c++-mode
-    c-mode
-    csharp-mode
-    css-mode
-    dos-mode
-    emacs-lisp-mode
-    html-mode
-    ini-generic-mode
-    java-mode
-    javascript-mode
-    js-mode
-    lisp-interaction-mode
-    lua-mode
-    latex-mode
-    makefile-mode
-    makefile-gmake-mode
-    markdown-mode
-    moccur-edit-mode
-    nxml-mode
-    nxhtml-mode
-    outline-mode
-    perl-mode cperl-mode
-    php-mode
-    python-mode
-    rc-generic-mode
-    reg-generic-mode
-    ruby-mode
-    sgml-mode
-    sh-mode
-    squirrel-mode
-    text-mode
-    tcl-mode
-    visual-basic-mode)
+  '( actionscript-mode
+     apache-mode
+     bat-generic-mode
+     c++-mode
+     c-mode
+     csharp-mode
+     css-mode
+     dos-mode
+     emacs-lisp-mode
+     html-mode
+     ini-generic-mode
+     java-mode
+     javascript-mode
+     js-mode
+     lisp-interaction-mode
+     lua-mode
+     latex-mode
+     makefile-mode
+     makefile-gmake-mode
+     markdown-mode
+     moccur-edit-mode
+     nxml-mode
+     nxhtml-mode
+     outline-mode
+     perl-mode cperl-mode
+     php-mode
+     python-mode
+     rc-generic-mode
+     reg-generic-mode
+     ruby-mode
+     sgml-mode
+     sh-mode
+     squirrel-mode
+     text-mode
+     tcl-mode
+     visual-basic-mode)
   "Major modes function `auto-highlight-symbol-mode' can run on."
   :group 'auto-highlight-symbol
   :type '(repeat symbol))
@@ -523,13 +523,13 @@ If major mode not in list all symbols can be highlighted."
 
 (defvar auto-highlight-symbol-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "M-<left>") 'ahs-backward)
-    (define-key map (kbd "M-<right>") 'ahs-forward)
-    (define-key map (kbd "M-S-<left>") 'ahs-backward-definition)
-    (define-key map (kbd "M-S-<right>") 'ahs-forward-definition)
-    (define-key map (kbd "M--") 'ahs-back-to-start)
-    (define-key map (kbd "C-x C-'") 'ahs-change-range)
-    (define-key map (kbd "C-x C-a") 'ahs-edit-mode)
+    (define-key map (kbd "M-<left>") #'ahs-backward)
+    (define-key map (kbd "M-<right>") #'ahs-forward)
+    (define-key map (kbd "M-S-<left>") #'ahs-backward-definition)
+    (define-key map (kbd "M-S-<right>") #'ahs-forward-definition)
+    (define-key map (kbd "M--") #'ahs-back-to-start)
+    (define-key map (kbd "C-x C-'") #'ahs-change-range)
+    (define-key map (kbd "C-x C-a") #'ahs-edit-mode)
     map)
   "Keymap used in function `auto-highlight-symbol-mode'.")
 
@@ -1236,9 +1236,10 @@ If FORCE is non-nil, delete all in the current buffer."
 
 (defun ahs-edit-post-command-hook-function ()
   "`post-command-hook' used in edit mode."
+  (jcs-print ahs-current-overlay)
   (cond
    ;; Exit edit mode
-   ((not (ahs-inside-overlay-p (ahs-current-overlay-window)))
+   ((not (ahs-inside-overlay-p (car ahs-current-overlay)))
     (ahs-edit-mode-off nil nil))
 
    ;; Modify!!
@@ -1251,11 +1252,11 @@ If FORCE is non-nil, delete all in the current buffer."
 
 (defun ahs-symbol-modification ()
   "Modify all highlighted symbols."
-  (let* ((current-overlay (ahs-current-overlay-window))
+  (let* ((current-overlay (car ahs-current-overlay))
          (source (buffer-substring-no-properties
                   (overlay-start current-overlay)
                   (overlay-end current-overlay))))
-    (dolist (change (ahs-overlay-list-window))
+    (dolist (change ahs-overlay-list)
       (when (overlayp change)
         (let* ((beg (overlay-start change))
                (end (overlay-end change))
