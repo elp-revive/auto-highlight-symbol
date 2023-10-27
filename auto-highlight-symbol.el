@@ -456,7 +456,7 @@ This variable can be set in three different types.
     Function is called with one argument, the symbol.
 
   3. `alist'
-  '(
+  `(
     ( `emacs-lisp-mode' . \"REGEXP\")  ; Regular expression in emacs-lisp-mode
     ( php-mode . my-include-function) ; Function predicate in php-mode
     )
@@ -480,7 +480,7 @@ This variable can be set in three different types.
     Function is called with one argument, the symbol.
 
   3. `alist'
-      '(;; Regular expression in ruby-mode
+      `(;; Regular expression in ruby-mode
         ( `ruby-mode' . \"\\_<\\(end\\|def\\|class\\)\\_>\")
         ( dos-mode  . i-hate-wxxxxxs)  ; Function predicate in dos-mode
         )
