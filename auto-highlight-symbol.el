@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2009-2010 Mitsuo Saito <arch320@NOSPAM.gmail.com>
 ;; Copyright (C) 2013-2020 Gennadiy Zlobin <gennad.zlobin@NOSPAM.gmail.com>
-;; Copyright (C) 2020-2023 Shen, Jen-Chieh <jcs090218@gmail.com>
+;; Copyright (C) 2020-2024 Shen, Jen-Chieh <jcs090218@gmail.com>
 ;; Created date 2009-03-03 21:44 +0900
 
 ;; Author: Mitsuo Saito <arch320@NOSPAM.gmail.com>
