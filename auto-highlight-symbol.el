@@ -9,7 +9,7 @@
 ;; Maintainer: Shen, Jen-Chieh <jcs090218@gmail.com>
 ;; Version: 1.61
 ;; Keywords: highlight face match convenience
-;; URL: http://github.com/jcs-elpa/auto-highlight-symbol
+;; URL: http://github.com/elp-revive/auto-highlight-symbol
 ;; Package-Requires: ((emacs "26.1") (ht "2.3"))
 ;;
 ;; This file is NOT part of GNU Emacs.
@@ -207,7 +207,7 @@
 (require 'ht)
 
 (eval-and-compile
-  (defconst ahs-web "http://github.com/jcs-elpa/auto-highlight-symbol-mode/")
+  (defconst ahs-web "http://github.com/elp-revive/auto-highlight-symbol-mode/")
   ;; Compatibility
   (if (or (>= emacs-major-version 24)
           (and (= emacs-major-version 23)
@@ -949,13 +949,17 @@ You can do these operations at One Key!
 ;; (@* "Timer" )
 ;;
 
+(defun ahs-stop-timer (&rest _)
+  "Stop the idle timer."
+  (when (timerp ahs-idle-timer) (cancel-timer ahs-idle-timer)))
+
 (defun ahs-start-timer (&rest _)
   "Start idle timer."
   (when auto-highlight-symbol-mode
     (ahs-edit-post-command-hook-function)
     (save-match-data
       (ahs-unhighlight)  ; unhighlight it once here so we can see the result immediately
-      (when (timerp ahs-idle-timer) (cancel-timer ahs-idle-timer))
+      (ahs-stop-timer)
       (setq ahs-idle-timer
             (run-with-idle-timer
              ;; if switch window, immediately change focus/unfocus unless the user
@@ -1153,6 +1157,7 @@ You can do these operations at One Key!
            do (let ((overlay (make-overlay beg end nil nil t)))
                 (overlay-put overlay 'ahs-symbol 'others)
                 (overlay-put overlay 'window (selected-window))
+                (overlay-put overlay 'evaporate t)
                 (overlay-put overlay 'face
                              (if (ahs-face-p face 'ahs-definition-face-list)
                                  (if current ahs-definition-face
@@ -1200,6 +1205,7 @@ You can do these operations at One Key!
   (let* ((overlay (make-overlay beg end nil nil t))
          (face (ahs-current-plugin-prop 'face current)))
     (overlay-put overlay 'ahs-symbol 'current)
+    (overlay-put overlay 'evaporate t)
     (overlay-put overlay 'priority ahs-overlay-priority)
     (overlay-put overlay 'face face)
     (overlay-put overlay 'help-echo '(or (ignore-errors (ahs-stat-string)) ""))
@@ -1551,7 +1557,7 @@ If FORCE is non-nil, delete all in the current buffer."
     (force-mode-line-update)))
 
 (defun ahs-init ()
-  "Initialize"
+  "Initialize."
   (unless ahs-current-range
     (ahs-change-range-internal ahs-default-range))
   (ahs-set-lighter)
