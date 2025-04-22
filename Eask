@@ -1,3 +1,5 @@
+;; -*- mode: eask; lexical-binding: t -*-
+
 (package "auto-highlight-symbol"
          "1.61"
          "Automatic highlighting current symbol minor mode")
